@@ -35,8 +35,7 @@ around the energy transition.
   financing programmes in scaling the market
 - Sovereign issuance accelerated sharply after 2020 as governments increasingly 
   used green bonds to fund national climate transition plans
-- Greenium analysis: framework built and pending Bloomberg data input — 
-  methodology follows Zerbib (2019)
+- Greenium: academic literature consistently finds a 2–4 bps premium in developed markets and up to 13 bps in emerging markets (Zerbib 2019; Panizza et al. 2025; Banque de France 2025). A matched-pair framework is included in the Excel model for future empirical testing
 
 ## Methodology
 
@@ -51,14 +50,14 @@ built using openpyxl. Charts and summary tables were constructed to visualise:
 - Geographic distribution — top 10 countries by issuance volume (USD bn)
 - Sector allocation across sovereign, commercial bank, industrial, and other categories
 - Bond theme evolution — Green vs SLB vs Sustainability vs Social, 2018–2024
-- A greenium analysis framework: matched bond pair yield comparison designed for 
-  Bloomberg terminal data input, following the empirical methodology in Zerbib (2019)
-
+- A greenium analysis sheet documenting academic evidence across five studies (2019–2025) and a matched-pair framework designed for empirical testing using publicly available yield data
+  
 ## Files
 
 | File | Description |
 |------|-------------|
-| `Green_Bond_Market_Analysis.xlsx` | Six-sheet financial model including market charts and summary dashboard |
+| `Green_Bond_Market_Analysis.xlsx` | Six-sheet financial model including market charts, summary dashboard, and greenium literature review
+`Green_Bond_Market_Brief.pdf` | 3-page investment brief formatted as a bank-style research note |
 
 ## Skills Demonstrated
 
@@ -74,14 +73,16 @@ built using openpyxl. Charts and summary tables were constructed to visualise:
 - [x] Annual issuance analysis (2018–2024)
 - [x] Geographic and sector breakdown
 - [x] SLB vs Green bond comparison
-- [x] Greenium analysis framework
-- [ ] Greenium data population (Bloomberg terminal — in progress)
-- [ ] 3-page investment brief (in progress)
+- [x] Greenium literature review and matched-pair framework
+- [x] 3-page investment brief
 
 ## References
 
-Zerbib, O.D. (2019). *The effect of pro-environmental preferences on bond prices: 
-Evidence from green bonds.* Journal of Banking & Finance, 98, 39–60.
+Zerbib, O.D. (2019). *The effect of pro-environmental preferences on bond prices.* Journal of Banking & Finance, 98, 39–60.
+
+Panizza et al. (2025). *Sovereign Green Bonds.* CEPR Discussion Paper No.20817.
+
+Banque de France (2025). *The Green Bond Premium.* Working Paper No.1010.
 
 ---
 *Part of the [Sustainable Finance Portfolio](../README.md)*
