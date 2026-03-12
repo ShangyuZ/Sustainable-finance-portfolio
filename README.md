@@ -21,8 +21,7 @@ UK? Which sectors are actually raising this money? Who are the top UK issuers
 and what do they say they're funding? And do green bonds trade cheaper than 
 conventional bonds from the same issuer (the "greenium" question)?
 
-I'm matching bond pairs by maturity and pulling yield data through UCL's 
-Bloomberg access. Output: a short bank-style PDF brief and an Excel model.
+For the greenium question, I reviewed the academic literature (Zerbib 2019; Panizza et al. 2025; Banque de France 2025) and built a matched-pair framework in Excel ready for empirical testing. Output: a 3-page bank-style PDF brief and a six-sheet Excel model — both in the project folder.
 
 ---
 
