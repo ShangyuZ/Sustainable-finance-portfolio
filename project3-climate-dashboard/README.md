@@ -1,13 +1,18 @@
-# Project 3 — Climate Finance Dashboard
+# Project 3 — Climate & Energy Transition Dashboard
 
 ## Overview
 
-A live Streamlit dashboard covering three data sources a sustainable finance
-analyst would check daily:
+A live Streamlit dashboard covering four sections useful on a sustainable
+finance desk — built entirely on freely licensed, open datasets.
 
-1. **EU Carbon Price** — EUA spot price history with key policy events annotated
-2. **Green Bond Issuance Trends** — filterable by year and country
-3. **Portfolio Carbon Calculator** — input a stock portfolio, get weighted carbon intensity
+## Sections
+
+| # | Section | Data source |
+|---|---------|------------|
+| 1 | **EU Carbon Price** | Bundled EUA weekly price history (public sources) |
+| 2 | **Energy Transition** | Our World in Data energy dataset (CC BY) |
+| 3 | **Country Climate Scorecard** | Our World in Data — ranked CO₂ & renewables |
+| 4 | **Portfolio Carbon Calculator** | TCFD sector benchmarks (public) |
 
 ## Quick Start
 
@@ -17,12 +22,24 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+No API keys needed. The dashboard loads live OWID data on first run (cached for 24h)
+and uses the bundled `data/eua_prices.csv` for carbon prices.
+
+## Files
+
+| File | Description |
+|------|-------------|
+| `app.py` | Main Streamlit application |
+| `data/eua_prices.csv` | Weekly EUA spot prices 2018–2026 |
+| `.streamlit/config.toml` | Green theme configuration |
+| `requirements.txt` | Python dependencies |
+
 ## Status
 
-- [x] Project scaffolding and requirements
-- [ ] EU carbon price chart (EUA data via Ember / Sandbag API)
-- [ ] Green bond issuance chart (CBI data)
-- [ ] Portfolio carbon intensity calculator
+- [x] EU Carbon Price chart with policy event annotations
+- [x] Energy Transition — renewable share, CO₂, energy mix by country
+- [x] Country Climate Scorecard — rankings, scatter, decarbonisation rate
+- [x] Portfolio Carbon Intensity Calculator (WACI)
 - [ ] Deployment to Streamlit Community Cloud
 
 ## Live Link

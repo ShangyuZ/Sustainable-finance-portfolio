@@ -12,25 +12,17 @@ Outputs:
 """
 
 import argparse
-from pathlib import Path
 
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, Reference
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # ── colour palette ─────────────────────────────────────────────────────────
 GREEN  = "1A7A4A"
 LIGHT  = "E8F5E9"
 HEADER = "2E7D32"
-
-THEME_COLOURS = {
-    "Green":          "1A7A4A",
-    "SLB":            "FFA000",
-    "Sustainability": "0288D1",
-    "Social":         "C62828",
-}
 
 
 # ── helpers ────────────────────────────────────────────────────────────────

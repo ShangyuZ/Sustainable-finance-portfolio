@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyflakes
+
+      - name: Syntax check — project1 script
+        run: python -m py_compile project1-green-bond-analysis/scripts/process_data.py
+
+      - name: Syntax check — project3 dashboard
+        run: python -m py_compile project3-climate-dashboard/app.py
+
+      - name: Pyflakes lint — project1
+        run: python -m pyflakes project1-green-bond-analysis/scripts/process_data.py
+
+      - name: Pyflakes lint — project3
+        run: python -m pyflakes project3-climate-dashboard/app.py
