@@ -1,68 +1,74 @@
 # Sustainable Finance Portfolio
 ### ShangyuZ · BSc Statistics, Economics & Finance · UCL
 
-I'm building this portfolio to break into sustainable structured finance 
-and green DCM. Instead of just applying with a CV, I wanted to show I can 
-actually work with the instruments: green bonds, sustainability-linked loans, 
-climate data. So I designed three projects to teach myself what I'd be doing 
-day one on a desk.
+I'm building this portfolio to develop skills in sustainable finance and the
+energy transition. Instead of just reading about it, I wanted to actually work
+with the data and instruments — green bonds, sustainability-linked loans,
+climate datasets — using entirely open, freely licensed sources.
+
+All data used in this portfolio is publicly available and openly licensed.
+No proprietary or restricted data (Bloomberg, Refinitiv, etc.) is used anywhere.
 
 ---
 
 ## Projects
 
 ### 01 · Green Bond Market Analysis
-`Excel` `Bloomberg` `Climate Bonds Initiative` · **Status: In Progress**
+`Python` `Excel` `Climate Bonds Initiative` `openpyxl` · **Status: Complete**
 
-I wanted to understand the instrument at the heart of sustainable debt. I 
-pulled data from the Climate Bonds Initiative (2018–2024) and am working 
-through a few questions: How fast has the market grown, globally and in the 
-UK? Which sectors are actually raising this money? Who are the top UK issuers 
-and what do they say they're funding? And do green bonds trade cheaper than 
-conventional bonds from the same issuer (the "greenium" question)?
+Analysis of the global green bond market (2018–2024) using public issuance data
+from the Climate Bonds Initiative. Covers market growth, geographic and sector
+breakdown, the rise of sustainability-linked bonds (SLBs), and a greenium
+literature review with matched-pair methodology.
 
-For the greenium question, I reviewed the academic literature (Zerbib 2019; Panizza et al. 2025; Banque de France 2025) and built a matched-pair framework in Excel ready for empirical testing. Output: a 3-page bank-style PDF brief and a six-sheet Excel model — both in the project folder.
+→ [View project](./project1-green-bond-analysis/)
 
 ---
 
-### 02 · SLL Structuring Case Study
-`Excel` `Public Disclosures` `ICMA/LMA Principles` · **Status: Upcoming**
+### 02 · SLL Structuring — Hypothetical Framework
+`Excel` `LMA/ICMA Principles` · **Status: In Progress**
 
-Green bonds are straightforward: ringfenced money for green projects. 
-Sustainability-linked loans are more interesting. The interest rate moves 
-depending on whether a company hits ESG targets. I'm picking one FTSE 100 
-company and designing an SLL from first principles: which KPIs actually 
-matter for their business, what targets are ambitious but realistic, and how 
-the margin should move if they hit or miss. Benchmarked against ICMA's SLL 
-Principles.
+A framework exercise in structuring a sustainability-linked loan from first
+principles. Uses a hypothetical borrower and publicly available LMA/ICMA
+guidance — no proprietary company data. Covers KPI selection, SPT calibration,
+and margin ratchet design.
+
+→ [View project](./project2-sll-structuring/)
 
 ---
 
-### 03 · Climate Finance Dashboard
-`Python` `Streamlit` `Plotly` · **Status: Planned**
+### 03 · Climate & Energy Transition Dashboard
+`Python` `Streamlit` `Plotly` `Our World in Data` `Ember` · **Status: In Progress**
 
-A live dashboard with three things I'd want to check daily on a sustainable 
-finance desk: EU carbon price history with key policy events annotated, green 
-bond issuance trends filterable by year and country, and a portfolio carbon 
-calculator where you input stocks and see weighted carbon intensity. Deployed 
-publicly so anyone can use it.
+A live dashboard built on fully open datasets: energy transition trends by
+country (Our World in Data), EU carbon price history (Ember), and a portfolio
+carbon intensity calculator. Deployable on Streamlit Community Cloud.
 
-🔗 *Live link coming on deployment*
+→ [View project](./project3-climate-dashboard/)
+
+---
+
+## Data Sources
+
+All data is open-access and freely licensed:
+
+| Dataset | Source | Licence |
+|---------|--------|---------|
+| Green bond issuance | Climate Bonds Initiative (public reports) | Public |
+| Energy & emissions by country | Our World in Data | CC BY |
+| EU ETS carbon prices | Ember Climate | CC BY |
+| Renewable capacity stats | IRENA (public reports) | Public |
+| Academic greenium evidence | Published papers (cited) | Academic |
 
 ---
 
 ## Why I'm Doing This
 
-I study statistics, economics and finance at UCL. Most people in sustainable 
-finance come from policy or pure finance backgrounds. I think the quant side 
-(modelling, data, statistical thinking) is under-represented and genuinely 
-useful for things like climate scenario analysis, carbon price forecasting, 
-or green bond pricing.
-
-This portfolio is my way of bridging that gap. I want to show I can talk 
-about both the finance and the sustainability, and actually build things, 
-not just read about them.
+I study statistics, economics and finance at UCL. The quant side of sustainable
+finance — modelling, data, statistical thinking — is under-represented relative
+to the policy and qualitative work. I want to show I can work with both: the
+finance instruments and the underlying data, using reproducible, open methods.
 
 ---
 
-*Last updated: March 2026 · Updated as each project is completed*
+*Last updated: June 2026*
