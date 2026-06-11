@@ -57,7 +57,7 @@ built using openpyxl. Charts and summary tables were constructed to visualise:
 | File | Description |
 |------|-------------|
 | `Green_Bond_Market_Analysis.xlsx` | Six-sheet financial model including market charts, summary dashboard, and greenium literature review
-`Green_Bond_Market_Brief.pdf` | 3-page investment brief formatted as a bank-style research note |
+`Green_Bond_Market_Brief.pdf` | 3-page investment brief *(in progress)* |
 
 ## Skills Demonstrated
 
@@ -75,6 +75,13 @@ built using openpyxl. Charts and summary tables were constructed to visualise:
 - [x] SLB vs Green bond comparison
 - [x] Greenium literature review and matched-pair framework
 - [x] 3-page investment brief
+
+## Data Sources
+
+All data used in this project is freely and publicly available:
+- **Climate Bonds Initiative** — public market reports and News Makers dataset
+- **Academic papers** — cited below (open access or author preprints)
+- **No proprietary data** (Bloomberg, Refinitiv, or similar) is used
 
 ## References
 
