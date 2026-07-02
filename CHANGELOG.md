@@ -4,6 +4,29 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.4.0] — 2026-07-02 — Code quality: pandas fix, docstrings, volume YoY tracking
+
+### Fixed
+- `project3/app.py`: Replaced deprecated `Styler.applymap()` with `Styler.map()` —
+  `applymap` was deprecated in pandas 2.1 and removed in pandas 3.x; this would have
+  caused a hard crash on upgraded environments
+- `project3/app.py`: Corrected ISO-code prefix check from `"OWI"` to `"OWID"` to
+  match the inline comment and make intent explicit (functional impact is nil since
+  the 3-letter length filter already excludes OWID aggregate codes, but the code
+  now clearly documents why the filter exists)
+
+### Improved
+- `project1/scripts/process_data.py`: `annual_issuance()` now also computes
+  `YoY_Volume_Pct` (year-on-year % change in USD bn volume) alongside the existing
+  `YoY_Deals_Pct` — volume trend is a key metric for any green bond analysis
+- `project1/scripts/process_data.py`: Added docstrings to `geographic()`,
+  `sector()`, and `theme_evolution()` describing their output schema and sort order
+
+### Updated
+- `README.md`: refreshed "Last updated" date to July 2026
+
+---
+
 ## [v0.3.0] — 2026-06-11 — Big update: bug fixes, new dashboard section, CI
 
 ### Fixed

@@ -65,16 +65,26 @@ def load(path: str) -> pd.DataFrame:
 # ── aggregations ──────────────────────────────────────────────────────────
 
 def annual_issuance(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregate green bond data by year.
+
+    Returns a DataFrame with columns:
+      Year, Deals (count), Volume_USD_bn (sum of USD bn),
+      YoY_Deals_Pct (deal count YoY % change),
+      YoY_Volume_Pct (volume YoY % change).
+    """
     agg = (
         df.groupby("Year")
         .agg(Deals=("Year", "count"), Volume_USD_bn=("Amount (USD bn)", "sum"))
         .reset_index()
     )
-    agg["YoY_Pct"] = agg["Deals"].pct_change() * 100
+    agg["YoY_Deals_Pct"]  = agg["Deals"].pct_change() * 100
+    agg["YoY_Volume_Pct"] = agg["Volume_USD_bn"].pct_change() * 100
     return agg.round(2)
 
 
 def geographic(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
+    """Return top_n countries by deal count with total volume."""
     return (
         df.groupby("Country")
         .agg(Deals=("Country", "count"), Volume_USD_bn=("Amount (USD bn)", "sum"))
@@ -86,6 +96,7 @@ def geographic(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
 
 
 def sector(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate deal count and volume by sector, sorted by deal count descending."""
     return (
         df.groupby("Sector")
         .agg(Deals=("Sector", "count"), Volume_USD_bn=("Amount (USD bn)", "sum"))
@@ -96,6 +107,7 @@ def sector(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def theme_evolution(df: pd.DataFrame) -> pd.DataFrame:
+    """Pivot deal counts by Year × Theme to show how the bond-type mix has shifted."""
     return (
         df.groupby(["Year", "Theme"])
         .size()
@@ -121,7 +133,7 @@ def write_df(ws, df: pd.DataFrame, start_row: int = 2) -> None:
 
 def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
     ws = wb.create_sheet("1. Annual Issuance")
-    header_style(ws, 1, 4, "Annual Green Bond Issuance (2015–2024)")
+    header_style(ws, 1, 5, "Annual Green Bond Issuance (2015–2024)")
     agg = annual_issuance(df)
     write_df(ws, agg)
 
@@ -138,7 +150,7 @@ def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
     chart.shape = 4
     ws.add_chart(chart, "F3")
     ws.column_dimensions["A"].width = 8
-    for c in "BCDE":
+    for c in "BCDEF":
         ws.column_dimensions[c].width = 18
 
 
@@ -209,7 +221,7 @@ def sheet_dashboard(wb: Workbook, df: pd.DataFrame) -> None:
     total_deals = int(df.shape[0])
     countries = int(df["Country"].nunique())
     peak_year = int(agg.loc[agg["Deals"].idxmax(), "Year"])
-    latest_yoy = agg["YoY_Pct"].iloc[-1]
+    latest_yoy = agg["YoY_Deals_Pct"].iloc[-1]
     slb_share = df[df["Theme"] == "SLB"].shape[0] / max(total_deals, 1) * 100
 
     kpis = [
