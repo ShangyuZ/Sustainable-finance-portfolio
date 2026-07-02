@@ -52,7 +52,7 @@ def load_owid() -> pd.DataFrame:
     df = df[
         df["iso_code"].notna()
         & (df["iso_code"].str.len() == 3)
-        & ~df["iso_code"].str.startswith("OWI")
+        & ~df["iso_code"].str.startswith("OWID")
     ]
     df = df[df["year"] >= 2000].reset_index(drop=True)
     return df
@@ -367,8 +367,8 @@ elif section == "🏆 Country Climate Scorecard":
                 return "background-color: #FFF9C4"
             return "background-color: #FFCDD2"
 
-        styled = ranked.style.applymap(colour_co2, subset=["CO₂ per capita (t)"]) \
-                             .applymap(colour_ren, subset=["Renewables (% elec)"])
+        styled = ranked.style.map(colour_co2, subset=["CO₂ per capita (t)"]) \
+                             .map(colour_ren, subset=["Renewables (% elec)"])
         st.dataframe(styled, use_container_width=True, height=500)
 
     with tab_b:
