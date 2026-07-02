@@ -4,6 +4,20 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.4.2] — 2026-07-02 — Dynamic year ranges, full docstring coverage
+
+### Improved
+- `project1/scripts/process_data.py`: `sheet_annual()` header now derived from
+  actual data year range (`yr_min`–`yr_max`) instead of hardcoded `"2015–2024"`,
+  so it stays accurate when the dataset is updated.
+- `project1/scripts/process_data.py`: Dashboard KPI label changed from
+  `"Total Deals (2015–2024)"` to `"Total Deals (2015–present)"` for the same reason.
+- `project1/scripts/process_data.py`: Added docstrings to all previously
+  undocumented functions (`load`, `col_header`, `sheet_geo`, `sheet_sector`,
+  `sheet_theme`, `sheet_dashboard`, `main`) — module now has full docstring coverage.
+
+---
+
 ## [v0.4.1] — 2026-07-02 — Project 2 case study: hypothetical borrower
 
 ### Improved

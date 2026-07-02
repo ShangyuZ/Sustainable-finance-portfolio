@@ -37,6 +37,7 @@ def header_style(ws, row: int, cols: int, title: str, colour: str = HEADER) -> N
 
 
 def col_header(cell) -> None:
+    """Apply column-header styling: white bold text on dark-green background."""
     cell.font = Font(bold=True, color="FFFFFF")
     cell.fill = PatternFill("solid", fgColor=GREEN)
     cell.alignment = Alignment(horizontal="center")
@@ -45,6 +46,12 @@ def col_header(cell) -> None:
 # ── loading ────────────────────────────────────────────────────────────────
 
 def load(path: str) -> pd.DataFrame:
+    """
+    Load and clean the CBI News Makers CSV.
+
+    Strips whitespace from column names, coerces Year and Amount to numeric,
+    strips string columns, and filters to 2015+ (the modern labelled-bond era).
+    """
     df = pd.read_csv(path)
     df.columns = df.columns.str.strip()
 
@@ -133,7 +140,9 @@ def write_df(ws, df: pd.DataFrame, start_row: int = 2) -> None:
 
 def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
     ws = wb.create_sheet("1. Annual Issuance")
-    header_style(ws, 1, 5, "Annual Green Bond Issuance (2015–2024)")
+    yr_min = int(df["Year"].min())
+    yr_max = int(df["Year"].max())
+    header_style(ws, 1, 5, f"Annual Green Bond Issuance ({yr_min}–{yr_max})")
     agg = annual_issuance(df)
     write_df(ws, agg)
 
@@ -155,6 +164,7 @@ def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
 
 
 def sheet_geo(wb: Workbook, df: pd.DataFrame) -> None:
+    """Create the '2. Geography' sheet listing top-10 countries by deal count."""
     ws = wb.create_sheet("2. Geography")
     header_style(ws, 1, 3, "Top 10 Countries by Deal Count")
     write_df(ws, geographic(df))
@@ -163,6 +173,7 @@ def sheet_geo(wb: Workbook, df: pd.DataFrame) -> None:
 
 
 def sheet_sector(wb: Workbook, df: pd.DataFrame) -> None:
+    """Create the '3. Sector Breakdown' sheet aggregated by bond sector."""
     ws = wb.create_sheet("3. Sector Breakdown")
     header_style(ws, 1, 3, "Issuance by Sector")
     write_df(ws, sector(df))
@@ -171,6 +182,7 @@ def sheet_sector(wb: Workbook, df: pd.DataFrame) -> None:
 
 
 def sheet_theme(wb: Workbook, df: pd.DataFrame) -> None:
+    """Create the '4. Theme Evolution' sheet — deal counts pivoted by Year × Theme."""
     ws = wb.create_sheet("4. Theme Evolution")
     header_style(ws, 1, 6, "Bond Theme Mix by Year (Deal Count)")
     write_df(ws, theme_evolution(df))
@@ -214,6 +226,7 @@ def sheet_greenium(wb: Workbook) -> None:
 
 
 def sheet_dashboard(wb: Workbook, df: pd.DataFrame) -> None:
+    """Create the '0. Dashboard' sheet (first tab) with high-level KPIs derived from df."""
     ws = wb.create_sheet("0. Dashboard", 0)
     header_style(ws, 1, 4, "Green Bond Market Analysis — Summary Dashboard")
 
@@ -225,7 +238,7 @@ def sheet_dashboard(wb: Workbook, df: pd.DataFrame) -> None:
     slb_share = df[df["Theme"] == "SLB"].shape[0] / max(total_deals, 1) * 100
 
     kpis = [
-        ("Total Deals (2015–2024)", total_deals),
+        ("Total Deals (2015–present)", total_deals),
         ("Countries represented", countries),
         ("Peak year by deal count", peak_year),
         (f"YoY deal growth ({int(agg['Year'].max())})", f"{latest_yoy:.1f}%"),
@@ -244,6 +257,7 @@ def sheet_dashboard(wb: Workbook, df: pd.DataFrame) -> None:
 # ── main ──────────────────────────────────────────────────────────────────
 
 def main(input_path: str, output_path: str) -> None:
+    """Orchestrate the pipeline: load CSV → aggregate → build workbook → save."""
     print(f"Loading data from {input_path} …")
     df = load(input_path)
     print(f"  {len(df):,} records loaded, {df['Year'].min():.0f}–{df['Year'].max():.0f}")
