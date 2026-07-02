@@ -4,6 +4,22 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.4.1] — 2026-07-02 — Project 2 case study: hypothetical borrower
+
+### Improved
+- `project2-sll-structuring/README.md`: Replaced "TBC" company selection with a
+  fully hypothetical borrower (*Albion Industrials plc*) — illustrative revenue,
+  EBITDA margin, existing debt, credit rating, and Scope 1+2 baseline, all clearly
+  labelled as fictional. Removed reference to Bloomberg (proprietary data source,
+  violates portfolio rules); replaced with free equivalents: Companies House,
+  company IR websites, CDP disclosures, and LSE prospectuses.
+- `project2-sll-structuring/README.md`: Added financial impact table (P&L effect
+  of margin ratchet across three SPT scenarios), expanded SPT calibration with
+  explicit benchmark sources (SBTi Industrials pathway; UK CCC 6th Carbon Budget),
+  and added a Verification & Reporting section referencing SECR and REGO.
+
+---
+
 ## [v0.4.0] — 2026-07-02 — Code quality: pandas fix, docstrings, volume YoY tracking
 
 ### Fixed
