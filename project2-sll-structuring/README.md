@@ -77,15 +77,20 @@ verification. Market practice typically ranges from 2.5–15 bps per year.
 
 ### 4. Financial Impact (Illustrative)
 
-Assuming £650m facility at SONIA + 120 bps:
+Assuming £650m facility at SONIA + 120 bps, SONIA = 4.25%, full facility drawn
+(figures verified against the live calculator in `SLL_Structuring_Model.xlsx`,
+sheet "3. Margin Ratchet Calculator"):
 
-| Scenario | Margin | Annual interest cost | Δ vs base |
-|----------|--------|---------------------|-----------|
-| All SPTs met | SONIA + 112.5 bps | ~£8.7m* | −£490k |
-| No adjustment | SONIA + 120 bps | ~£9.2m* | — |
-| No SPTs met | SONIA + 127.5 bps | ~£9.7m* | +£490k |
+| Scenario | Margin | All-in rate | Annual interest cost | Δ vs base |
+|----------|--------|-------------|----------------------|-----------|
+| All SPTs met | SONIA + 112.5 bps | 5.375% | ~£34.94m* | −£490k |
+| No adjustment | SONIA + 120 bps | 5.450% | ~£35.43m* | — |
+| No SPTs met | SONIA + 127.5 bps | 5.525% | ~£35.91m* | +£490k |
 
-*Illustrative only. Assumes SONIA = 4.25%, full facility drawn.*
+*Illustrative only, full facility drawn. Note: an earlier version of this table
+understated the absolute interest cost (it applied only a fraction of the
+SONIA + margin rate to the facility); the per-scenario Δ of £490k was already
+correct. Figures above are recalculated as facility × (SONIA% + margin bps/100).*
 
 ### 5. Verification & Reporting
 
@@ -99,7 +104,7 @@ Assuming £650m facility at SONIA + 120 bps:
 
 | File | Description |
 |------|-------------|
-| `SLL_Structuring_Model.xlsx` | KPI tracker, SPT calibration, margin ratchet calculator *(in progress)* |
+| `SLL_Structuring_Model.xlsx` | KPI tracker with live progress tracking, SPT calibration & carbon-intensity glide path, and a margin ratchet calculator (editable inputs, formula-driven) |
 
 ## Status
 
@@ -109,7 +114,7 @@ Assuming £650m facility at SONIA + 120 bps:
 - [x] SPT calibration with benchmark sources
 - [x] Margin ratchet design with financial impact table
 - [x] Verification & reporting framework
-- [ ] Excel model (KPI tracker + ratchet calculator)
+- [x] Excel model (KPI tracker + ratchet calculator)
 - [ ] Structuring memo / brief
 
 ## References
@@ -125,6 +130,6 @@ UK Climate Change Committee (2023). *6th Carbon Budget: Sector Pathways.*
 CDP (2024). *CDP Climate Questionnaire — Technical Note on Scope 1+2 reporting.*
 
 ---
-*Last updated: 2026-07-02*
+*Last updated: 2026-09-30*
 
 *Part of the [Sustainable Finance Portfolio](../README.md)*

@@ -71,4 +71,4 @@ finance instruments and the underlying data, using reproducible, open methods.
 
 ---
 
-*Last updated: July 2026*
+*Last updated: September 2026*
