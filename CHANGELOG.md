@@ -4,6 +4,37 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.5.0] — 2026-09-30 — Project 2 Excel model, financial-impact fix
+
+### Added
+- `project2-sll-structuring/SLL_Structuring_Model.xlsx`: New four-sheet Excel model
+  (Borrower Profile, KPI Tracker, SPT Calibration & Glide Path, Margin Ratchet
+  Calculator). The KPI tracker and ratchet calculator are formula-driven with
+  editable (yellow) input cells and live recalculation — not static tables. All
+  data is the existing hypothetical Albion Industrials plc case; no real company
+  data used.
+
+### Fixed
+- `project2-sll-structuring/README.md`: Corrected the Financial Impact table —
+  the previous annual interest cost figures (~£8.7m/£9.2m/£9.7m) did not
+  reconcile with the stated £650m facility, SONIA + 120bps margin, and 4.25%
+  SONIA rate (facility × all-in rate gives ~£34.9m/£35.4m/£35.9m). The
+  scenario-to-scenario delta of £490k was already correct and is unchanged;
+  only the absolute cost figures were restated. New figures are cross-checked
+  against the live calculator in the new Excel model.
+- `project1-green-bond-analysis/README.md`: Status checklist marked "3-page
+  investment brief" as complete while the Files table listed the same PDF as
+  *(in progress)* and the file does not exist in the repo — checklist item
+  un-checked for consistency. Also fixed a missing table-row delimiter that
+  broke Markdown rendering of the Files table.
+
+### Updated
+- `project2-sll-structuring/README.md`: Checked off "Excel model" in Status;
+  refreshed "Last updated" to 2026-09-30.
+- `README.md`: Refreshed "Last updated" to September 2026.
+
+---
+
 ## [v0.4.2] — 2026-07-02 — Dynamic year ranges, full docstring coverage
 
 ### Improved
