@@ -61,7 +61,8 @@ not find it.
 Analysis of 732 labelled sustainable bond issuances (2015–2024, $650bn) using
 public Climate Bonds Initiative data. Covers market growth measured in both deals
 and dollars, geographic and sector breakdown, the rise of sustainability-linked
-bonds, and a greenium framework built on sovereign green "twin" bonds.
+bonds, and a **measured greenium of −1.50bps** from Germany's green "twin" Bunds
+across 8,094 paired daily observations.
 
 Rebuilds end to end from the committed CSV with one command.
 
@@ -75,7 +76,7 @@ Rebuilds end to end from the committed CSV with one command.
 A framework exercise in structuring a sustainability-linked loan from first
 principles, with a hypothetical borrower and publicly available LMA/ICMA guidance.
 Covers KPI selection, SPT calibration and margin ratchet design in a formula-driven
-Excel model.
+Excel model, with a credit-committee-style structuring memo.
 
 The useful finding is that the headline ratchet saving overstates the benefit: the
 ratchet applies only to the drawn margin of a revolving facility, the undrawn
@@ -101,7 +102,7 @@ carbon intensity (WACI) calculator. Deployable on Streamlit Community Cloud.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 238 tests
+pytest tests/                                            # 252 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -119,10 +120,11 @@ project1-green-bond-analysis/
 project2-sll-structuring/
   scripts/sll.py               facility economics — ratchet, utilisation, break-even
   scripts/build_model.py       builds the six-sheet formula-driven Excel model
+  memo/                        structuring memo (markdown source + generated PDF)
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         238 tests across all three projects
+tests/                         252 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
 .github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
 ```

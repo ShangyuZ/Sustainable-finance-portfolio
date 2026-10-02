@@ -12,7 +12,7 @@ portfolio that only shows the finished surface tells you nothing about whether
 the person can be trusted with the parts you can't see.
 
 Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 238 tests). The fixes are in
+suite (`pytest tests/` — 252 tests). The fixes are in
 [PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
 
 ---
@@ -278,6 +278,50 @@ spreadsheet, because a reader has no reason to doubt it.
 
 ---
 
+## 7. What the audit led to: I measured the greenium
+
+Rebuilding the greenium sheet on open data (§1) left me with a framework and no
+result, which is an unsatisfying place to stop. So I ran it.
+
+Germany issues each green Federal security as a **twin** of a conventional one
+with the same coupon, the same maturity and the same issuer. I matched all nine
+outstanding green securities to their exact twins — deriving the pairing by
+matching coupon and maturity rather than asserting it — and took the daily yield
+series the issuer publishes for each. That gives **8,094 paired daily
+observations, September 2020 to October 2026**.
+
+| | |
+|---|---|
+| Pooled greenium | **−1.50bps** |
+| HAC standard error | 0.052 |
+| t-statistic | −28.7 |
+| Days with a negative spread | 99.8% |
+| Per-pair means | −0.65bps to −2.40bps, all negative |
+
+Two things I would not have predicted.
+
+**The inference correction mattered more than I expected.** A daily yield spread
+is strongly autocorrelated, so I used Newey-West HAC standard errors. On this
+data the HAC standard error is **3.3× the ordinary one**: the naive t-statistic
+is −94, the honest one is −28.7. The conclusion survives either way because the
+sample is large, but on a shorter sample that factor of three is the difference
+between a finding and an artefact. I would not have known that without computing
+both.
+
+**The greenium has compressed by about 80% since 2021** — from −4.71bps to
+−0.76bps in 2025. That is a more interesting result than the level. At −4.7bps
+there was arguably a funding incentive to issue green; at under 1bp the advantage
+is inside the bid-offer spread on most days. It fits the thesis above rather than
+contradicting it: this market's growth is driven by sovereign funding strategy,
+not by price.
+
+It also shows no maturity pattern (correlation 0.11 between years-to-maturity and
+mean greenium), so it is a label effect rather than a term-structure artefact.
+
+The estimate is pinned by tests (`tests/test_greenium_result.py`) so the figures
+in the brief and in this file cannot drift from the data, and
+`scripts/fetch_bund_yields.py` reproduces the whole download.
+
 ## How I check things now
 
 The audit changed my process more than it changed the output:
@@ -301,8 +345,6 @@ The audit changed my process more than it changed the output:
 
 Listed honestly rather than quietly dropped:
 
-- The greenium is specified and the pipeline is written, but **no empirical
-  estimate is claimed yet** — the measurement needs a data fetch I have not run.
 - Streamlit Cloud deployment.
 
 ---

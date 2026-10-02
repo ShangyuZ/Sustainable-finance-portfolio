@@ -98,12 +98,25 @@ def test_unclassified_is_disclosed(brief_text, figures):
 
 # ── claims the brief must not make ────────────────────────────────────────────
 
-def test_brief_claims_no_greenium_estimate(brief_text):
+def test_brief_reports_the_greenium_with_its_uncertainty(brief_text):
     """
-    No empirical greenium has been run, so the brief must say so rather than
-    implying a result.
+    The brief now makes an empirical claim, so it must carry the uncertainty
+    alongside it — a point estimate with no standard error is not a result.
     """
-    assert "no empirical claim" in brief_text.lower()
+    lowered = brief_text.lower()
+    assert "hac standard error" in lowered or "hac se" in lowered
+    assert "t-statistic" in lowered or "t-stat" in lowered
+    assert "paired" in lowered and "observations" in lowered
+
+
+def test_brief_discloses_the_autocorrelation_correction(brief_text):
+    """
+    The naive standard error would overstate precision threefold on this data.
+    A reader cannot judge the estimate without being told that.
+    """
+    lowered = brief_text.lower()
+    assert "autocorrelated" in lowered
+    assert "newey-west" in lowered or "newey west" in lowered
 
 
 def test_brief_states_the_dataset_is_not_a_census(brief_text):
