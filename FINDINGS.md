@@ -12,7 +12,7 @@ portfolio that only shows the finished surface tells you nothing about whether
 the person can be trusted with the parts you can't see.
 
 Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 255 tests). The fixes are in
+suite (`pytest tests/` — 262 tests). The fixes are in
 [PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
 
 ---

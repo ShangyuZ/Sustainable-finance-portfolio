@@ -59,10 +59,11 @@ Two caveats matter for reading any figure below:
   (68) but is sixth by volume, because Chinese issuance here is many small bank
   deals while European volume sits in large sovereign programmes. Germany,
   France and the UK are the top three by volume (36% combined).
-- **Greenium:** the literature consistently finds a small negative premium —
-  green bonds yield a few bps *less* than comparable conventional bonds (−2bps in
-  Zerbib 2019, up to −20bps in primary-market studies). No empirical estimate is
-  claimed here; sheet 7 specifies a framework that can be run on free data.
+- **Greenium: −1.50bps**, measured on Germany's green twin Bunds across 8,094
+  paired daily observations (HAC SE 0.052, t = −28.7), and **compressed ~80% since
+  2021**. That sits close to Zerbib's −2bps and well below the primary-market
+  studies' −20bps, which is expected: those measure the issuance concession, this
+  measures secondary trading. German sovereign only — see the limitations below.
 
 ## Methodology
 
@@ -108,7 +109,7 @@ Options: `--input`, `--output`, `--min-year`.
 
 ```bash
 python scripts/build_brief.py   # regenerate the investment brief PDF
-pytest ../tests/                # 255 tests: cleaning, aggregation, model, brief, greenium
+pytest ../tests/                # 262 tests: cleaning, aggregation, model, brief, greenium
 ```
 
 ### The investment brief

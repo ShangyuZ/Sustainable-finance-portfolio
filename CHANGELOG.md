@@ -4,6 +4,44 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.9.2] — 2026-10-02 — Remove contradictory disclaimers of the greenium estimate
+
+### Fixed
+
+Four places still said no greenium estimate was claimed, after v0.9.0 published
+one. Reported by a reader of the brief, who spotted that §4 gives −1.50bps while
+§5 listed "No greenium estimate is claimed" as a limitation.
+
+- `brief/Green_Bond_Market_Brief.md` §5 — now states the real limitation: the
+  estimate is **German sovereign only** and does not generalise to corporates,
+  other sovereigns, or primary-market pricing.
+- `project1-green-bond-analysis/README.md` — the greenium bullet still deferred to
+  the literature and disclaimed an estimate; it now leads with the measured
+  −1.50bps.
+- `scripts/process_data.py` — the "STATUS: framework and sources only" note is
+  written **into sheet 7 of the Excel model**, so a reader opening the workbook saw
+  the contradiction where no text search would find it. Now a "RESULT" note
+  carrying the estimate, its standard error, and the reproduction commands.
+- `scripts/greenium.py` module docstring.
+
+### Changed
+
+- The guard that was supposed to prevent this is replaced. It pinned one exact
+  sentence (`"I make no empirical claim here"`), so the same claim reworded in
+  another section passed. It now matches the *property* — any unqualified
+  disclaimer of an estimate — across the brief, three READMEs, both scripts, and
+  **the generated workbook's cells**, which is the surface that hid four vendor
+  references for months.
+- The qualification check is **sentence-scoped**. A first attempt checked whole
+  cells, which let a long workbook note disclaim an estimate in one sentence and
+  be excused by "German sovereign only" three sentences later. Mutation testing
+  caught it; both mutations now fail the suite.
+- A paired test asserts the qualified caveat is still present, so the fix cannot
+  swing the other way into overclaiming.
+- 255 → **262 tests**.
+
+---
+
 ## [v0.9.1] — 2026-10-02 — Dashboard deployed
 
 ### Added
