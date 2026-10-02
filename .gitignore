@@ -11,3 +11,6 @@ venv/
 outputs/
 *.log
 .pytest_cache/
+
+# Fetched HTML cache (regenerable via scripts/fetch_bund_yields.py)
+.fetch_cache/

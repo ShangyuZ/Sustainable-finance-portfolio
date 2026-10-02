@@ -37,6 +37,7 @@ jobs:
             project1-green-bond-analysis/scripts/process_data.py \
             project1-green-bond-analysis/scripts/greenium.py \
             project1-green-bond-analysis/scripts/build_brief.py \
+            project1-green-bond-analysis/scripts/fetch_bund_yields.py \
             project2-sll-structuring/scripts/sll.py \
             project2-sll-structuring/scripts/build_model.py \
             project3-climate-dashboard/app.py \
@@ -49,6 +50,7 @@ jobs:
             project1-green-bond-analysis/scripts/process_data.py \
             project1-green-bond-analysis/scripts/greenium.py \
             project1-green-bond-analysis/scripts/build_brief.py \
+            project1-green-bond-analysis/scripts/fetch_bund_yields.py \
             project2-sll-structuring/scripts/sll.py \
             project2-sll-structuring/scripts/build_model.py \
             project3-climate-dashboard/app.py \
@@ -69,11 +71,15 @@ jobs:
             --output /tmp/ci_sll.xlsx
           test -s /tmp/ci_sll.xlsx
 
-      - name: Investment brief rebuilds from its Markdown source
+      - name: Documents rebuild from their Markdown sources
         run: |
           python project1-green-bond-analysis/scripts/build_brief.py \
             --output /tmp/ci_brief.pdf
           test -s /tmp/ci_brief.pdf
+          python project1-green-bond-analysis/scripts/build_brief.py \
+            --input project2-sll-structuring/memo/SLL_Structuring_Memo.md \
+            --output /tmp/ci_memo.pdf
+          test -s /tmp/ci_memo.pdf
 
       - name: Greenium estimator refuses the unpopulated template
           # The committed pair registry is a template. If it ever estimated, the
