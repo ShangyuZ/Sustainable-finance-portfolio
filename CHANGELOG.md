@@ -4,6 +4,51 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.7.0] — 2026-10-02 — Project 2: realistic RCF economics
+
+### Added
+
+- `project2-sll-structuring/scripts/sll.py` — facility economics as pure,
+  unit-tested functions: ratchet grid, utilisation, commitment fee, break-even.
+- `project2-sll-structuring/scripts/build_model.py` — generates the workbook, so
+  Project 2 is reproducible for the same reason Project 1 now is. The `.xlsx` was
+  previously committed with no script that produced it.
+- **Utilisation and commitment fee.** The model priced the £650m RCF as fully
+  drawn with no commitment fee. Both assumptions flatter the structure: the
+  ratchet applies only to the drawn margin, so at 60% utilisation the best-case
+  saving falls from £487.5k to **£292.5k**; and the undrawn balance carries a
+  commitment fee (~35% of margin, 42bps here) worth £1.09m a year at that
+  utilisation — several times the entire ratchet saving, and previously ignored.
+- **Break-even analysis.** The ratchet saving scales with drawdown while the
+  verification cost is fixed, so there is a utilisation below which the best
+  possible ESG outcome does not cover the cost of proving it: **20.5%**. For an
+  RCF held as an undrawn liquidity backstop — the normal use — the pricing
+  benefit is therefore negligible, and the case for the SLL has to rest on
+  signalling rather than cost of capital. That is a recognised criticism of the
+  instrument and the model now makes it explicit.
+- Two new sheets: "4. Utilisation Sensitivity" and "5. Economics & Caveats", the
+  latter listing what the model deliberately does not claim.
+- 58 tests for the SLL layer, including one that evaluates the workbook's Excel
+  formulas and asserts they match the Python model cell by cell — a
+  formula-driven workbook that silently disagrees with the code is worse than no
+  workbook, because a reader has no reason to doubt it.
+- `requirements-dev.txt`.
+
+### Fixed
+
+- The carbon glide path was hardcoded values, so editing the baseline or SPT left
+  the interim targets stale. It is now interpolated from the two endpoints in
+  Excel formulas.
+- The scenario table used literal conditions (`IF(3=3,…)`) rather than referencing
+  the row, so the rows could not be copied or extended.
+- 2027 glide-path value displayed as 240.2 rather than 240.25.
+
+### Changed
+
+- CI lints and rebuilds both Excel models, and runs on a Python 3.11 + 3.13 matrix.
+
+---
+
 ## [v0.6.0] — 2026-10-02 — Reproducibility, data-quality layer, dashboard repairs
 
 This release is mostly corrections. Several things the earlier changelog claimed
