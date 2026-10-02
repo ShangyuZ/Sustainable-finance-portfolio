@@ -2,6 +2,8 @@
 
 ## Overview
 
+**▶ Live: [shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)**
+
 A live Streamlit dashboard covering four sections useful on a sustainable
 finance desk — built entirely on freely licensed, open datasets.
 
@@ -116,11 +118,15 @@ If the build fails on dependencies, point Cloud at
 - [x] Portfolio Carbon Intensity Calculator (WACI)
 - [x] Unit tests for all pure transforms; CI smoke-test renders every section
 - [x] Deployment preconditions verified and guarded by tests
-- [ ] Deployed to Streamlit Community Cloud *(needs the account owner to click deploy)*
+- [x] Deployed to Streamlit Community Cloud
 
 ## Live Link
 
-🔗 *Not yet deployed — see the steps above.*
+🔗 **[shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)**
+
+Public, no sign-in required. The first load after a period of inactivity takes a
+few seconds: Community Cloud suspends idle apps, and the dashboard then downloads
+~24MB of OWID data, which is cached for 24h thereafter.
 
 ---
 *Part of the [Sustainable Finance Portfolio](../README.md)*
