@@ -4,6 +4,144 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.6.0] — 2026-10-02 — Reproducibility, data-quality layer, dashboard repairs
+
+This release is mostly corrections. Several things the earlier changelog claimed
+were done turned out not to be, and two of the four dashboard sections were not
+working at all. Details below rather than glossed over, because the point of the
+changelog is to be able to trust it.
+
+### Fixed — portfolio-level claim that was false
+
+- **Bloomberg/Refinitiv references were still live inside
+  `Green_Bond_Market_Analysis.xlsx`**, despite v0.2.0 claiming they were "removed
+  throughout" and the root README stating none are used *anywhere*. Four cells
+  carried them, including "This sheet is designed to be populated using
+  Bloomberg/Refinitiv data available via UCL library access" and "Visit a UCL
+  Bloomberg terminal". A text search of the repo could never have found these —
+  they were inside the zipped workbook. The greenium sheet is rebuilt around
+  sovereign green "twin" bonds (Finanzagentur, AFT, UK DMO), which is both free
+  and a cleaner identification strategy, since a green Bund and its conventional
+  twin share coupon, maturity and issuer by construction. CI now fails the build
+  if a vendor reference reappears in any file *or* any spreadsheet cell.
+
+### Fixed — Project 3 dashboard: two of four sections were dead
+
+- **`co2` and `co2_per_capita` do not exist in the OWID energy dataset.** They
+  live only in OWID's separate CO2 dataset. The "CO₂ Emissions" tab and the
+  entire "Country Climate Scorecard" — the headline v0.3.0 feature — therefore
+  fell through to "column not found" and `st.stop()` every time they were opened.
+  The app now loads both datasets and merges on `(country, year)`.
+- **Energy mix pie double-counted nested shares.** `renewables_share_elec`
+  already contains hydro, wind and solar, so plotting all of them in one pie
+  summed to 134% for the UK, 181% for Brazil and **198% for Norway**. Now split
+  into a fossil/renewables/nuclear pie (sums to 100%) plus a separate renewables
+  breakdown.
+- **Scorecard keyed its ranking to `max(year)`.** OWID's newest year covers only
+  partial reporters (energy dataset: ~90 countries, zero emissions overlap), so
+  even after the merge above the table would have been empty. It now selects the
+  most recent year with at least 40 countries reporting every required metric,
+  and displays which year that is.
+- **`top_n` slider crashed** when fewer than 30 countries had data: the hardcoded
+  `st.slider(..., 10, len(scorecard), 30)` raises when the default exceeds the
+  maximum.
+- **`use_container_width` is past its removal date** (2025-12-31). Replaced with
+  `width="stretch"` across all nine call sites; `streamlit` floor raised to 1.49.
+- Default portfolio weights didn't sum to 100 for several holding counts (n=14
+  gave 99.4%), tripping the "adjust to 100%" warning on an untouched form.
+- WACI is now also reported rescaled to 100% when entered weights fall short —
+  previously an under-weighted portfolio simply looked lower-carbon.
+- The synthetic EUA price fallback is now labelled as illustrative in the UI
+  instead of rendering silently as if it were real market data.
+- Missing empty-data guard on the CO₂ tab; year sliders capped at years where the
+  plotted column actually has data.
+
+### Fixed — Project 1 was not reproducible
+
+- **The committed workbook was never produced by the committed script.** The file
+  in the repo had sheets `Summary Dashboard / Raw Data / Annual Issuance /
+  Country & Sector / SLB Analysis / Greenium Analysis`; the script emitted
+  `0. Dashboard … 5. Greenium Analysis`. The script also read a column
+  `Amount (USD bn)` that does not exist in the data (it is `Amount_USD_bn`), and
+  its input `data/cbi_newsmakers.csv` was absent from the repo entirely. The
+  README described output nobody could regenerate.
+- **Source data is now committed** at `project1-green-bond-analysis/data/cbi_newsmakers.csv`
+  (732 records, extracted from the workbook's own Raw Data sheet), and the model
+  rebuilds from it with `python scripts/process_data.py`. CI runs that rebuild.
+- **Scope was internally inconsistent.** The workbook headlined "2018–2024 /
+  7-year time series" and its annual table started at 2018 ($638.15bn), while its
+  total said $650.0bn — an unexplained $11.90bn gap, being 2015–2017. All sheets
+  now cover 2015–2024 and reconcile to $650.04bn, with the thinness of 2015–2017
+  and the partial-year status of 2024 stated explicitly.
+- **"Unique issuers: 69"** on the dashboard was the *country* count; unique
+  issuers is 180. Both are now reported correctly and separately.
+
+### Fixed — data quality defects that silently skewed the analysis
+
+New `scripts/clean.py` plus sheet 1 of the workbook documents every rule:
+
+- `Sector` encodes "not disclosed" as the string `"0"` (64 records) — previously
+  rendered as a sector literally named "0" in the breakdown.
+- `Sector` used 34 labels for 11 real groups (140 records affected):
+  Financials/Financial/Finance/Banks/Commercial Bank/Diversified Banks/Financial
+  Institution are one sector. Split across seven rows, none of them ranked;
+  folded, Financials is second by volume at 7.1%.
+- `Country` carried duplicate labels (42 records): USA/United States,
+  UK/United Kingdom, China_HK, and the misspelt Supernational/Supranational.
+  This understated the **UK ($59.34bn → $59.79bn)** and, together with a trailing
+  space in `"Netherlands "`, the **Netherlands ($28.81bn → $29.58bn)**, and
+  inflated the country count from an actual **64 to an apparent 69**.
+- `Issuer Name` had case variants (GoodLeap/Goodleap) inflating the issuer count.
+- Two source records are **deliberately left uncorrected** and flagged instead:
+  Schneider Electric SE (French) is tagged to the United States, and its 2015
+  deal is labelled SLB years before that market existed — which is why 2015 shows
+  a 100% SLB share.
+
+### Fixed — README claims that did not match the data
+
+- "731 bond issuances" → **732** (the theme breakdown already summed to 732).
+- "50+ countries" → **64** (and the workbook's "69" was wrong).
+- "Deal **volume** grew from 10 transactions in 2018 to 238 in 2023 — a 2,280%
+  increase" conflated count with volume. The +2,280% figure is deal **count**;
+  USD volume over the same period grew **+950%** ($17.6bn → $184.5bn). Both are
+  now reported, with the reason they differ.
+- Coverage was stated as 2018–2024 in the overview and 2015–2024 in the dataset
+  section. It is 2015–2024.
+- The greenium **sign convention was contradictory** between artifacts — the
+  script listed negative bps while the workbook's formulas treated positive as
+  "greenium exists". Now stated explicitly once: (green − conventional) in bps,
+  negative means a greenium.
+- "Six-sheet model" → nine sheets, listed individually.
+
+### Added
+
+- `tests/` — **125 tests** covering normalisation, every aggregation's
+  reconciliation invariants, the workbook build, merged-range validity, and the
+  dashboard's pure transforms. Verified by mutation testing: reintroducing each
+  original bug makes the suite fail.
+- `project3-climate-dashboard/transforms.py` — pure calculations extracted from
+  `app.py` so they are testable without a network connection or a Streamlit
+  context.
+- `project1-green-bond-analysis/scripts/clean.py` — loading, normalisation and
+  aggregation, separated from Excel presentation.
+- Workbook sheet **"1. Data Quality"** — every cleaning rule, records affected,
+  and why it matters; plus known source issues left uncorrected.
+- Workbook sheets for **Geography**, **Sector**, **Theme Evolution** (on deals
+  *and* volume) and **SLB Analysis** (two penetration measures, since SLB share
+  of green+SLB and of all issuance are not interchangeable).
+- CI: Python 3.11 + 3.13 matrix, pyflakes over all sources and tests, pytest, a
+  workbook-rebuild check, the proprietary-data guard, and a non-blocking
+  dashboard smoke job that renders all four sections against live OWID data.
+
+### Changed
+
+- `streamlit>=1.35.0` → `>=1.49.0` (needed for `width="stretch"`).
+- Geography and sector tables now rank by **USD volume** rather than deal count:
+  China leads on deals (68) but is sixth by volume, which is the more meaningful
+  ordering for market size.
+
+---
+
 ## [v0.5.0] — 2026-09-30 — Project 2 Excel model, financial-impact fix
 
 ### Added

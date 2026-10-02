@@ -10,3 +10,4 @@ venv/
 .ipynb_checkpoints/
 outputs/
 *.log
+.pytest_cache/
