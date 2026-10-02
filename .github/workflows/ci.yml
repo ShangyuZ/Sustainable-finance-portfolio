@@ -2,32 +2,147 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Feature branches too, so work in progress is checked before any PR exists.
+    branches: [main, "claude/**", "feature/**"]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  lint-and-check:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the deployment target; 3.13 guards against the next upgrade.
+        python-version: ["3.11", "3.13"]
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
+          cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt pyflakes
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
-      - name: Syntax check — project1 script
-        run: python -m py_compile project1-green-bond-analysis/scripts/process_data.py
+      - name: Syntax check
+        run: |
+          python -m py_compile \
+            project1-green-bond-analysis/scripts/clean.py \
+            project1-green-bond-analysis/scripts/process_data.py \
+            project2-sll-structuring/scripts/sll.py \
+            project2-sll-structuring/scripts/build_model.py \
+            project3-climate-dashboard/app.py \
+            project3-climate-dashboard/transforms.py
 
-      - name: Syntax check — project3 dashboard
-        run: python -m py_compile project3-climate-dashboard/app.py
+      - name: Pyflakes lint
+        run: |
+          python -m pyflakes \
+            project1-green-bond-analysis/scripts/clean.py \
+            project1-green-bond-analysis/scripts/process_data.py \
+            project2-sll-structuring/scripts/sll.py \
+            project2-sll-structuring/scripts/build_model.py \
+            project3-climate-dashboard/app.py \
+            project3-climate-dashboard/transforms.py \
+            tests/
 
-      - name: Pyflakes lint — project1
-        run: python -m pyflakes project1-green-bond-analysis/scripts/process_data.py
+      - name: Unit tests
+        run: python -m pytest tests/ -v --tb=short
 
-      - name: Pyflakes lint — project3
-        run: python -m pyflakes project3-climate-dashboard/app.py
+      - name: Excel models rebuild from committed sources
+        # Guards reproducibility: both workbooks in the repo must be regenerable
+        # from what is committed, with no manual steps.
+        run: |
+          python project1-green-bond-analysis/scripts/process_data.py \
+            --output /tmp/ci_green_bonds.xlsx
+          test -s /tmp/ci_green_bonds.xlsx
+          python project2-sll-structuring/scripts/build_model.py \
+            --output /tmp/ci_sll.xlsx
+          test -s /tmp/ci_sll.xlsx
+
+      - name: No proprietary data references anywhere
+        # The portfolio claims no Bloomberg/Refinitiv data is used. Text search
+        # alone misses references inside .xlsx files, so check cell contents too.
+        run: |
+          python - <<'PY'
+          import re, sys
+          from pathlib import Path
+          from openpyxl import load_workbook
+
+          VENDORS = re.compile(
+              r"bloomberg|refinitiv|eikon|factset|capital\s*iq|\bmarkit\b|datastream", re.I)
+          hits = []
+
+          for xlsx in Path(".").rglob("*.xlsx"):
+              for ws in load_workbook(xlsx).worksheets:
+                  for row in ws.iter_rows():
+                      for cell in row:
+                          if isinstance(cell.value, str) and VENDORS.search(cell.value):
+                              hits.append(f"{xlsx}:{ws.title}!{cell.coordinate}: "
+                                          f"{cell.value[:100]}")
+
+          # Skipped by design: README/CHANGELOG name vendors to disclaim their use
+          # or to record history, and tests/ holds the detector itself.
+          SKIP_DIRS = {".git", "tests", ".github"}
+          for src in list(Path(".").rglob("*.py")) + list(Path(".").rglob("*.csv")):
+              if SKIP_DIRS & set(src.parts):
+                  continue
+              for i, line in enumerate(src.read_text(errors="replace").splitlines(), 1):
+                  if VENDORS.search(line):
+                      hits.append(f"{src}:{i}: {line.strip()[:100]}")
+
+          if hits:
+              print("Proprietary data references found:")
+              for h in hits:
+                  print("  " + h)
+              sys.exit(1)
+          print("No proprietary data references found.")
+          PY
+
+  dashboard-smoke:
+    # Exercises all four dashboard sections against the live OWID feeds, so a
+    # breaking upstream schema change is caught here rather than by a viewer.
+    runs-on: ubuntu-latest
+    continue-on-error: true   # upstream data availability is not our build status
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r project3-climate-dashboard/requirements.txt pytest
+
+      - name: Render every dashboard section
+        working-directory: project3-climate-dashboard
+        run: |
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+
+          SECTIONS = [
+              "🏭 EU Carbon Price",
+              "⚡ Energy Transition",
+              "🏆 Country Climate Scorecard",
+              "🌍 Portfolio Carbon Calculator",
+          ]
+          failed = False
+          for section in SECTIONS:
+              at = AppTest.from_file("app.py", default_timeout=900)
+              at.run()
+              at.sidebar.radio[0].set_value(section).run()
+              errors = [e.value for e in at.exception]
+              print(f"{'FAIL' if errors else 'ok  '}  {section}")
+              for e in errors:
+                  print(f"        {e}")
+              failed |= bool(errors)
+          raise SystemExit(1 if failed else 0)
+          PY
