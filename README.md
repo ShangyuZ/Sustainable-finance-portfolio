@@ -106,7 +106,7 @@ carbon intensity (WACI) calculator.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 255 tests
+pytest tests/                                            # 262 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -128,7 +128,7 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         255 tests across all three projects
+tests/                         262 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
 .github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
 ```

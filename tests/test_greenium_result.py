@@ -14,6 +14,7 @@ Skips cleanly when the fetched data is absent, since it is reproducible with
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -164,8 +165,86 @@ def test_brief_quotes_the_computed_estimate(pooled):
     assert f"{pooled.n_obs:,}" in text, "brief does not quote the observation count"
 
 
-def test_brief_no_longer_disclaims_an_estimate():
-    """§4 used to say no empirical claim was made. It now makes one."""
+# Matches any form of "no empirical/greenium estimate is claimed". The earlier
+# guard pinned one exact sentence, so the same claim reworded in another section
+# slipped through — which is how the brief ended up stating a result in section 4
+# and disclaiming one in section 5.
+STALE_DISCLAIMER = re.compile(
+    r"no\s+(global\s+)?(empirical|greenium)[^.]{0,40}\b(estimate|claim)", re.I)
+
+# A qualified disclaimer is correct and must stay: the estimate really is German
+# sovereign only. Only the unqualified form is the contradiction.
+QUALIFIED = re.compile(r"german|sovereign only|does not generalise", re.I)
+
+
+def _unqualified_matches(text: str) -> list[str]:
+    """
+    Every unqualified disclaimer in ``text``, scoped to the sentence it sits in.
+
+    Checking qualification across a whole cell or paragraph is too coarse: a long
+    workbook note can disclaim an estimate in one sentence and say "German
+    sovereign only" three sentences later, and the second would wrongly excuse
+    the first. Mutation testing caught exactly that.
+    """
+    found = []
+    for match in STALE_DISCLAIMER.finditer(text):
+        start = max(text.rfind(".", 0, match.start()) + 1, 0)
+        end = text.find(".", match.end())
+        sentence = text[start:end if end != -1 else len(text)].strip()
+        if not QUALIFIED.search(sentence):
+            found.append(" ".join(sentence.split())[:110])
+    return found
+
+
+@pytest.mark.parametrize("rel", [
+    "project1-green-bond-analysis/brief/Green_Bond_Market_Brief.md",
+    "project1-green-bond-analysis/README.md",
+    "README.md",
+    "FINDINGS.md",
+    "project1-green-bond-analysis/scripts/greenium.py",
+    "project1-green-bond-analysis/scripts/process_data.py",
+])
+def test_no_unqualified_disclaimer_of_the_estimate(rel):
+    """
+    No document may still say an estimate is not claimed.
+
+    The repository now publishes one. A qualified statement ("German sovereign
+    only") is fine and expected; an unqualified one contradicts the result.
+    """
+    path = ROOT / rel
+    if not path.exists():
+        pytest.skip(f"{rel} not present")
+    offending = _unqualified_matches(path.read_text(encoding="utf-8"))
+    assert not offending, f"stale disclaimer in {rel}:\n  " + "\n  ".join(offending)
+
+
+def test_workbook_cells_do_not_disclaim_the_estimate():
+    """
+    The generated workbook is checked too, because its text is invisible to a
+    plain file search — the same blind spot that hid four vendor references
+    inside this spreadsheet for months.
+    """
+    workbook = ROOT / "project1-green-bond-analysis" / "Green_Bond_Market_Analysis.xlsx"
+    if not workbook.exists():
+        pytest.skip("workbook not present")
+    from openpyxl import load_workbook
+    offending = []
+    for sheet in load_workbook(workbook).worksheets:
+        for row in sheet.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str):
+                    continue
+                for hit in _unqualified_matches(cell.value):
+                    offending.append(f"{sheet.title}!{cell.coordinate}: {hit}")
+    assert not offending, "stale disclaimer in workbook cells:\n  " + "\n  ".join(offending)
+
+
+def test_the_qualified_limitation_is_still_stated():
+    """
+    The opposite failure: silently dropping the caveat would overclaim.
+    The estimate is German sovereign only and the brief must say so.
+    """
     if not BRIEF.exists():
         pytest.skip("brief not present")
-    assert "I make no empirical claim here" not in BRIEF.read_text(encoding="utf-8")
+    text = BRIEF.read_text(encoding="utf-8").lower()
+    assert "german sovereign only" in text or "german sovereign" in text
