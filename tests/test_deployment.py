@@ -119,3 +119,35 @@ def test_local_module_sits_beside_the_app():
 def test_bundled_data_is_present():
     """The EUA chart falls back to synthetic data without this file."""
     assert (DASHBOARD / "data" / "eua_prices.csv").exists()
+
+
+# ── the published links ──────────────────────────────────────────────────────
+
+LIVE_URL = "https://shangyuz-sustainable-finance.streamlit.app"
+
+
+def test_live_url_is_recorded_in_both_readmes():
+    """
+    The deployed URL is the single most-clicked thing in this repository.
+
+    If it is changed on Streamlit's side, both READMEs have to change with it —
+    so they are checked together rather than one being left stale.
+    """
+    for readme in (ROOT / "README.md", DASHBOARD / "README.md"):
+        assert LIVE_URL in readme.read_text(encoding="utf-8"), f"live URL missing from {readme.name}"
+
+
+def test_deployment_is_marked_done():
+    text = (DASHBOARD / "README.md").read_text(encoding="utf-8")
+    assert "- [x] Deployed to Streamlit Community Cloud" in text
+    assert "Not yet deployed" not in text
+
+
+def test_documents_linked_from_the_root_readme_exist():
+    """A broken PDF link on the landing page is worse than no link."""
+    import re
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    targets = re.findall(r"\]\((\./[^)]+\.pdf)\)", text)
+    assert targets, "no PDF links found in the root README"
+    for target in targets:
+        assert (ROOT / target.lstrip("./")).exists(), f"broken link: {target}"

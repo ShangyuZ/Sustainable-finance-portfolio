@@ -51,6 +51,8 @@ not find it.
 
 [![CI](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml)
 
+**▶ Live dashboard: [shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)** · **📄 [Investment brief (PDF)](./project1-green-bond-analysis/brief/Green_Bond_Market_Brief.pdf)** · **📄 [SLL structuring memo (PDF)](./project2-sll-structuring/memo/SLL_Structuring_Memo.pdf)**
+
 ---
 
 ## Projects
@@ -88,11 +90,13 @@ structure only pays for itself above **20.5% utilisation**.
 ---
 
 ### 03 · Climate & Energy Transition Dashboard
-`Python` `Streamlit` `Plotly` `Our World in Data` · **Status: In Progress**
+`Python` `Streamlit` `Plotly` `Our World in Data` · **Status: Deployed**
+
+**▶ Live: [shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)**
 
 A live dashboard on fully open datasets: EU carbon price history, energy
 transition trends by country, a country climate scorecard, and a portfolio
-carbon intensity (WACI) calculator. Deployable on Streamlit Community Cloud.
+carbon intensity (WACI) calculator.
 
 → [View project](./project3-climate-dashboard/)
 
@@ -102,7 +106,7 @@ carbon intensity (WACI) calculator. Deployable on Streamlit Community Cloud.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 252 tests
+pytest tests/                                            # 255 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -124,7 +128,7 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         252 tests across all three projects
+tests/                         255 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
 .github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
 ```
