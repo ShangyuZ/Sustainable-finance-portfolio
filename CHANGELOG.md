@@ -4,6 +4,61 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.8.0] — 2026-10-02 — Audit write-up, greenium estimator, investment brief
+
+### Added
+
+- **`FINDINGS.md`** — what the October audit found, with mechanisms and
+  quantified consequences, plus the argument the three projects add up to. The
+  portfolio previously read as three parallel exercises; the thesis is that
+  labelled debt splits into use-of-proceeds and performance-linked families, and
+  the performance-linked family has a pricing problem (small incentive, scales
+  with drawdown, gated by a fixed verification cost). The root README is reframed
+  around it.
+- **`scripts/greenium.py`** — greenium estimator built on sovereign green *twin*
+  bonds, where the green and conventional legs share coupon, maturity and issuer,
+  so the yield difference is the greenium by construction with no matching model.
+  Inference is **Newey-West HAC corrected**: a daily yield spread is strongly
+  autocorrelated, so the iid standard error understates uncertainty and an
+  uncorrected t-test manufactures significance. Reports the per-pair distribution,
+  the share of days actually negative, and whether each pair is an exact twin —
+  a non-twin estimate must not read like a clean one.
+  **No empirical estimate is claimed**: no yield data is committed and the fetch
+  has not been run. 34 tests verify the estimator against synthetic series with a
+  known true greenium.
+- **`data/green_twin_pairs.example.csv`** — pair-registry template. Deliberately
+  unpopulated: the estimator refuses to run while any row contains `FILL_ME`, and
+  CI asserts that refusal, so the repo cannot publish numbers for securities that
+  do not exist.
+- **The investment brief** (`brief/Green_Bond_Market_Brief.md` + generated PDF) —
+  three pages of analysis plus methodology and references, arguing that the
+  $650bn headline conceals a European sovereign funding programme with a small
+  private tail. Markdown is the source of truth; `scripts/build_brief.py` renders
+  the PDF. Every headline figure is re-derived from the committed dataset and
+  asserted in `tests/test_brief.py`, so the document cannot drift from the data.
+- **Deployment preconditions verified and guarded** (`tests/test_deployment.py`).
+
+### Fixed
+
+- **Streamlit Cloud would have dropped the dashboard theme silently.** Streamlit
+  resolves `.streamlit/config.toml` relative to the *working directory*, and Cloud
+  runs from the repository root — so a config living only in
+  `project3-climate-dashboard/` is never read. Added a root-level copy, with a
+  test asserting the two stay identical.
+- Three figures in the brief were wrong on first draft and caught by the figure
+  tests: 2022 volume read $140.4bn against a true $140.3bn, its average deal size
+  $831m against $830m, and the Social theme's volume share 4.3% against 4.2%. All
+  three came from **double rounding** — formatting an already-2dp-rounded
+  aggregate to 1dp. The tests now compare against raw sums.
+
+### Changed
+
+- CI additionally rebuilds the brief, asserts the greenium template refuses to
+  estimate, and lints the two new modules.
+- 183 → **238 tests**.
+
+---
+
 ## [v0.7.0] — 2026-10-02 — Project 2: realistic RCF economics
 
 ### Added
