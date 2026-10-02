@@ -162,11 +162,28 @@ to be the binding factor in the cost of capital either way.
   with an unambitious SPT prices identically to a demanding one in this model. No
   amount of ratchet engineering fixes a weak target.
 
+## The memo
+
+[`memo/SLL_Structuring_Memo.pdf`](./memo/SLL_Structuring_Memo.pdf) is the
+credit-committee-style document the model supports. It recommends structuring the
+facility as sustainability-linked **but not presenting the margin ratchet as the
+commercial rationale**, on the basis that the ratchet is worth £292.5k at
+realistic utilisation against a £1.09m commitment fee the original model ignored,
+and only covers its own verification cost above 20.5% drawdown.
+
+It also takes a view on the KPI set rather than just describing it: KPI 3
+(supply-chain audit *coverage*) measures process rather than outcome, and the
+renewable-share SPT can be met substantially through procurement rather than
+operational change. Both are accepted, with conditions, and said plainly.
+
 ## Running it
 
 ```bash
 pip install -r ../requirements.txt
-python scripts/build_model.py
+python scripts/build_model.py                                      # rebuild the Excel model
+python ../project1-green-bond-analysis/scripts/build_brief.py \
+    --input memo/SLL_Structuring_Memo.md \
+    --output memo/SLL_Structuring_Memo.pdf                         # rebuild the memo PDF
 ```
 
 Rebuilds `SLL_Structuring_Model.xlsx`. Options: `--output`, `--utilisation`.
@@ -186,6 +203,8 @@ in this README, the code, and the spreadsheet cannot drift apart.
 | `scripts/sll.py` | Facility economics — ratchet, utilisation, commitment fee, break-even (pure, unit-tested) |
 | `scripts/build_model.py` | Builds the Excel model from `sll.py` |
 | `SLL_Structuring_Model.xlsx` | Six-sheet formula-driven model (generated — do not edit by hand) |
+| `memo/SLL_Structuring_Memo.md` | Structuring memo — the editable source |
+| `memo/SLL_Structuring_Memo.pdf` | The memo as a PDF (generated from the markdown) |
 
 ### Workbook contents
 
@@ -210,7 +229,7 @@ Yellow cells are inputs; everything else is a live formula.
 - [x] Realistic RCF economics — utilisation, commitment fee, break-even analysis
 - [x] Verification & reporting framework
 - [x] Reproducible build from script, with unit tests
-- [ ] Structuring memo / brief
+- [x] Structuring memo with a recommendation and conditions precedent
 
 ## References
 

@@ -108,7 +108,7 @@ Options: `--input`, `--output`, `--min-year`.
 
 ```bash
 python scripts/build_brief.py   # regenerate the investment brief PDF
-pytest ../tests/                # 238 tests: cleaning, aggregation, model, brief, greenium
+pytest ../tests/                # 252 tests: cleaning, aggregation, model, brief, greenium
 ```
 
 ### The investment brief
@@ -130,7 +130,10 @@ in `tests/test_brief.py`, so the document cannot drift from the data.
 | `data/cbi_newsmakers.csv` | Source extract — 732 records, the input to everything |
 | `scripts/clean.py` | Loading, normalisation and aggregation (pure pandas, unit-tested) |
 | `scripts/greenium.py` | Greenium estimator — twin-bond spreads with HAC-corrected inference |
-| `data/green_twin_pairs.example.csv` | Pair-registry template (populate from the issuer's list) |
+| `scripts/fetch_bund_yields.py` | Downloads the twin pairs and daily yields from the Finanzagentur |
+| `data/green_twin_pairs.csv` | The nine twin pairs, coupon- and maturity-matched |
+| `data/bund_yields.csv` | 17,656 daily per-ISIN yields across 18 securities |
+| `data/green_twin_pairs.example.csv` | Pair-registry template, for other issuers |
 | `scripts/process_data.py` | Builds the Excel model from the cleaned data |
 | `Green_Bond_Market_Analysis.xlsx` | Nine-sheet model (generated — do not edit by hand) |
 | `brief/Green_Bond_Market_Brief.md` | Investment brief — the editable source |
@@ -193,10 +196,32 @@ across pairs, and the share of days on which the spread was actually negative �
 because the published range (−2 to −20bps) is mostly heterogeneity across issuers
 and periods rather than disagreement about method.
 
-**No empirical estimate is claimed in this repository yet.** No yield data is
-committed, and I have not run the fetch. The estimator is tested against
-synthetic series with a known true greenium (`tests/test_greenium.py`, 34 tests),
-which verifies the arithmetic and the inference but is not a result.
+### The result
+
+Measured across all nine outstanding German green Federal securities and their
+exact twins — **8,094 paired daily observations, September 2020 to October 2026**:
+
+| | |
+|---|---|
+| Pooled greenium | **−1.50bps** (HAC SE 0.052, t = −28.7) |
+| Days with a negative spread | 99.8% |
+| Per-pair means | −0.65bps to −2.40bps, all negative |
+| 2021 → 2025 | −4.71bps → −0.76bps (~80% compression) |
+
+The HAC correction is not cosmetic: on this data it triples the standard error,
+taking the t-statistic from −94 to −28.7. There is no maturity pattern
+(correlation 0.11), so this is a label effect, not a term-structure artefact.
+
+Reproduce it with:
+
+```bash
+python scripts/fetch_bund_yields.py        # downloads pairs + yields from the issuer
+python scripts/greenium.py --pairs data/green_twin_pairs.csv \
+                           --yields data/bund_yields.csv --strict
+```
+
+The estimate is pinned in `tests/test_greenium_result.py` so the figures quoted
+here and in the brief cannot drift from the committed data.
 
 ## Skills Demonstrated
 
@@ -214,10 +239,10 @@ which verifies the arithmetic and the inference but is not a result.
 - [x] SLB vs green bond comparison
 - [x] Greenium literature review and matched-pair framework
 - [x] Greenium estimator implemented and unit-tested
-- [ ] Greenium empirical estimate *(needs a yield-data fetch — not yet run)*
+- [x] Greenium empirical estimate — −1.50bps across 8,094 paired observations
 - [x] Reproducible build from committed source data
 - [x] Unit tests and CI
-- [x] Investment brief — three pages of analysis plus methodology and references
+- [x] Investment brief — market structure, the SLB puzzle, and the measured greenium
 
 ## Data Sources
 
