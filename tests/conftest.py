@@ -10,10 +10,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT1 = ROOT / "project1-green-bond-analysis"
+PROJECT2 = ROOT / "project2-sll-structuring"
 PROJECT3 = ROOT / "project3-climate-dashboard"
 
-# Both modules are plain scripts rather than installed packages.
+# These are plain scripts rather than installed packages.
 sys.path.insert(0, str(PROJECT1 / "scripts"))
+sys.path.insert(0, str(PROJECT2 / "scripts"))
 sys.path.insert(0, str(PROJECT3))
 
 
