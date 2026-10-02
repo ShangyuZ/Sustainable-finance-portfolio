@@ -516,12 +516,16 @@ def sheet_greenium(wb: Workbook) -> None:
         ws.row_dimensions[r + i].height = 28
     r += len(steps) + 1
 
-    section(ws, r, "STATUS")
+    section(ws, r, "RESULT")
     note(ws, r + 1, 6,
-         "Framework and sources only — no empirical estimate is claimed here. The "
-         "point of specifying it against published sovereign twin data is that it is "
-         "executable without any paid data subscription, which the earlier "
-         "terminal-based version of this sheet was not.")
+         "Measured on this framework: -1.50bps pooled across all nine German green "
+         "twin pairs, 8,094 paired daily observations from September 2020 to "
+         "October 2026 (HAC standard error 0.052, t = -28.7), negative on 99.8% of "
+         "days, and compressed roughly 80% since 2021. German sovereign only. "
+         "Reproduce with scripts/fetch_bund_yields.py then scripts/greenium.py; the "
+         "full write-up is in brief/Green_Bond_Market_Brief.pdf. Every input is "
+         "published free by the issuer — no paid data subscription is involved, "
+         "which the earlier terminal-based version of this sheet required.")
     widths(ws, {"A": 34, "B": 10, "C": 22, "D": 20, "E": 26, "F": 28})
 
 
