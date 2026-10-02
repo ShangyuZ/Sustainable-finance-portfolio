@@ -4,8 +4,14 @@
 
 pytest>=8.0.0
 pyflakes>=3.2.0
+numpy>=1.26.0   # used directly by the greenium tests
 
 # Evaluates the Excel formulas in the generated workbooks so they can be checked
 # against the Python models they were built from. Optional: the tests that use it
 # skip cleanly when it is absent.
 formulas>=1.2.0
+
+# Renders the investment brief from Markdown to PDF, and verifies the result.
+# Optional: the tests that use them skip cleanly when absent.
+reportlab>=4.0.0
+pypdf>=4.0.0

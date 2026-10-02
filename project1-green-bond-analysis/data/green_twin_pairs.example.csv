@@ -1,0 +1,34 @@
+# Green / conventional bond pair registry — TEMPLATE
+#
+# This file is deliberately NOT populated. Fill it from the issuer's own
+# published list of green securities and their conventional twins, so that every
+# ISIN in it is traceable to a primary source:
+#
+#   Germany  Deutsche Finanzagentur    — "Green Federal securities". Each green
+#                                        security names its conventional twin,
+#                                        and the twin shares coupon and maturity.
+#                                        These are the exact-twin pairs.
+#   France   Agence France Tresor      — OAT verte. No exact-twin structure: pair
+#                                        it with the nearest-maturity conventional
+#                                        OAT and expect twin_exact = False.
+#   UK       UK Debt Management Office  — green gilts, in the daily gilt close data.
+#
+# All of these publish the data free of charge. Do not populate this from a
+# terminal subscription: CI fails the build on any proprietary-vendor reference.
+#
+# scripts/greenium.py refuses to estimate while any row still contains FILL_ME.
+# It also derives two columns you should read before trusting an estimate:
+#
+#   twin_exact         True only when coupon AND maturity match on both legs.
+#                      Only then is the yield difference the greenium by
+#                      construction, with no matching assumptions doing the work.
+#   maturity_gap_days  Residual term-structure mismatch the raw spread does not
+#                      control for. Reported rather than hidden.
+#
+# Run with --strict to refuse anything that is not an exact twin.
+#
+# Dates are ISO (YYYY-MM-DD); coupons are the annual coupon in percent.
+#
+pair_id,green_isin,conventional_isin,green_coupon_pct,green_maturity,conventional_coupon_pct,conventional_maturity,issuer
+FILL_ME_pair_1,FILL_ME,FILL_ME,0.0,2030-01-01,0.0,2030-01-01,FILL_ME
+FILL_ME_pair_2,FILL_ME,FILL_ME,0.0,2031-01-01,0.0,2031-01-01,FILL_ME

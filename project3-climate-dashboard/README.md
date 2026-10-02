@@ -78,6 +78,36 @@ connection or a running Streamlit app. `app.py` keeps only I/O and layout.
 - Sector intensity benchmarks are sector averages, so the WACI is indicative;
   company-level precision needs company-level disclosures (CDP).
 
+## Deploying to Streamlit Community Cloud
+
+Verified ready. Two things about Cloud are worth knowing because both fail
+*silently* rather than erroring, and `tests/test_deployment.py` now guards them:
+
+1. **Cloud's working directory is the repository root, not this folder.** Streamlit
+   resolves `.streamlit/config.toml` relative to the working directory, so a theme
+   that lives only here is ignored on Cloud. There is now a copy at the repo root,
+   and a test asserts the two stay identical.
+2. **`from transforms import ...` still resolves**, because Streamlit puts the main
+   script's own directory on `sys.path`. Verified by executing the app with the
+   repo root as the working directory.
+
+Resource use is comfortable: the two OWID downloads total ~24MB and the cached
+frames occupy ~12MB in memory, against Cloud's 1GB limit. First load takes a few
+seconds while the data downloads; it is then cached for 24h.
+
+**Steps:**
+
+1. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
+2. **New app** → **Deploy a public app from a repo**.
+3. Repository `ShangyuZ/Sustainable-finance-portfolio`, branch `main`.
+4. **Main file path:** `project3-climate-dashboard/app.py` *(not `app.py`)*.
+5. Deploy. No secrets or API keys are needed — every data source is public.
+6. Put the resulting URL in the Live Link section below and in the root README.
+
+If the build fails on dependencies, point Cloud at
+`project3-climate-dashboard/requirements.txt` under Advanced settings; the root
+`requirements.txt` also covers the app's imports.
+
 ## Status
 
 - [x] EU Carbon Price chart with policy event annotations
@@ -85,11 +115,12 @@ connection or a running Streamlit app. `app.py` keeps only I/O and layout.
 - [x] Country Climate Scorecard — rankings, scatter, decarbonisation rate
 - [x] Portfolio Carbon Intensity Calculator (WACI)
 - [x] Unit tests for all pure transforms; CI smoke-test renders every section
-- [ ] Deployment to Streamlit Community Cloud
+- [x] Deployment preconditions verified and guarded by tests
+- [ ] Deployed to Streamlit Community Cloud *(needs the account owner to click deploy)*
 
 ## Live Link
 
-🔗 *Coming on deployment*
+🔗 *Not yet deployed — see the steps above.*
 
 ---
 *Part of the [Sustainable Finance Portfolio](../README.md)*

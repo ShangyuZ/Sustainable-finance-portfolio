@@ -1,15 +1,53 @@
 # Sustainable Finance Portfolio
 ### ShangyuZ · BSc Statistics, Economics & Finance · UCL
 
-I'm building this portfolio to develop skills in sustainable finance and the
-energy transition. Instead of just reading about it, I wanted to actually work
-with the data and instruments — green bonds, sustainability-linked loans,
-climate datasets — using entirely open, freely licensed sources.
+I'm building this portfolio to work with the actual instruments and data of
+sustainable finance — green bonds, sustainability-linked loans, climate datasets
+— rather than just reading about them. Everything uses open, freely licensed
+sources.
 
-All data used in this portfolio is publicly available and openly licensed.
-No proprietary or restricted data (Bloomberg, Refinitiv, etc.) is used anywhere —
-and CI fails the build if a reference to one reappears, including inside the
-`.xlsx` files, where a plain text search would not find it.
+## The argument
+
+Labelled debt splits into two families. **Use-of-proceeds** instruments (green
+bonds) promise what the money is spent on. **Performance-linked** instruments
+(SLBs, SLLs) promise an *outcome*, and the borrower's cost of capital moves with
+whether they hit it. The second family is the more intellectually satisfying one,
+which is why it gets the attention.
+
+Working through both, I think the performance-linked family has a pricing
+problem:
+
+- The incentive is small — a ±7.5bps ratchet sits inside the ordinary spread
+  volatility of a BBB– borrower.
+- It scales with drawdown, so it is weakest exactly where revolving facilities
+  actually sit: undrawn, as liquidity backstops.
+- It is gated by a fixed cost. Below **20.5% utilisation**, the best possible ESG
+  outcome does not pay for the verification needed to prove it.
+
+Meanwhile the use-of-proceeds market did scale — $650bn across 732 deals — but
+**82% of that volume is sovereign**. It scaled because governments issued, not
+because the private incentive worked.
+
+So neither family looks primarily priced into existence. The case for
+sustainability-linked structures is signalling, governance and internal
+accountability — a real case, but not the cost-of-capital case the marketing
+makes. Project 2 is the evidence for the first half, Project 1 for the second,
+and Project 3 is the underlying climate data.
+
+## What I got wrong
+
+In October 2026 I audited this portfolio instead of adding to it, and found five
+things wrong — two of which meant dashboard sections that had never worked, and
+one of which meant this README's own headline claim was false (four Bloomberg
+references were sitting inside an `.xlsx`, where no text search could find them).
+
+**→ [FINDINGS.md](./FINDINGS.md)** documents all of them, with mechanisms and
+quantified consequences. It is probably the most useful thing in this repository.
+
+All data is publicly available and openly licensed. No proprietary or restricted
+data is used anywhere — and CI now fails the build if a reference to one
+reappears, including inside the `.xlsx` files, where a plain text search would
+not find it.
 
 [![CI](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml)
 
@@ -63,7 +101,7 @@ carbon intensity (WACI) calculator. Deployable on Streamlit Community Cloud.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 183 tests
+pytest tests/                                            # 238 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -84,7 +122,8 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         183 tests across all three projects
+tests/                         238 tests across all three projects
+FINDINGS.md                    what the audit found, and what I changed
 .github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
 ```
 
@@ -127,6 +166,11 @@ seven different labels for the financial sector. None of that throws an error �
 it just quietly produces the wrong league table. Sheet 1 of the Project 1 model
 documents every correction, because being able to show what you changed and why
 matters more than a clean-looking chart.
+
+The second most useful thing is that my own mistakes turned out to be more
+interesting than my results. Auditing this portfolio taught me more than building
+it did, which is why [FINDINGS.md](./FINDINGS.md) is written up as carefully as
+the analysis.
 
 ---
 

@@ -107,8 +107,21 @@ Rebuilds `Green_Bond_Market_Analysis.xlsx` from `data/cbi_newsmakers.csv`.
 Options: `--input`, `--output`, `--min-year`.
 
 ```bash
-pytest ../tests/            # 125 tests covering cleaning, aggregation and the model
+python scripts/build_brief.py   # regenerate the investment brief PDF
+pytest ../tests/                # 238 tests: cleaning, aggregation, model, brief, greenium
 ```
+
+### The investment brief
+
+[`brief/Green_Bond_Market_Brief.pdf`](./brief/Green_Bond_Market_Brief.pdf) argues
+that the labelled bond market's $650bn headline conceals a European sovereign
+funding programme with a small private tail: 82.5% of volume is sovereign, 64.4%
+is European, and the instrument with the strongest theoretical claim — the
+performance-linked SLB — is 14.8% of deals but 3.4% of volume.
+
+The markdown is the source of truth and the PDF is generated from it. Every
+headline figure in the brief is re-derived from the committed dataset and asserted
+in `tests/test_brief.py`, so the document cannot drift from the data.
 
 ## Files
 
@@ -116,8 +129,13 @@ pytest ../tests/            # 125 tests covering cleaning, aggregation and the m
 |------|-------------|
 | `data/cbi_newsmakers.csv` | Source extract — 732 records, the input to everything |
 | `scripts/clean.py` | Loading, normalisation and aggregation (pure pandas, unit-tested) |
+| `scripts/greenium.py` | Greenium estimator — twin-bond spreads with HAC-corrected inference |
+| `data/green_twin_pairs.example.csv` | Pair-registry template (populate from the issuer's list) |
 | `scripts/process_data.py` | Builds the Excel model from the cleaned data |
 | `Green_Bond_Market_Analysis.xlsx` | Nine-sheet model (generated — do not edit by hand) |
+| `brief/Green_Bond_Market_Brief.md` | Investment brief — the editable source |
+| `brief/Green_Bond_Market_Brief.pdf` | The brief as a PDF (generated from the markdown) |
+| `scripts/build_brief.py` | Renders the brief to PDF |
 
 ### Workbook contents
 
@@ -140,13 +158,45 @@ Reported throughout as **(green yield − conventional yield) in bps**, so a
 The opposite convention is also common in practice, so it is stated explicitly
 to avoid ambiguity.
 
-The measurement framework uses sovereign **green "twin" bonds**: Germany issues
-each green Bund alongside a conventional Bund with the *same coupon and same
-maturity from the same issuer*, so the yield difference is the greenium almost by
-construction, with no matching model required. France (OAT verte) and the UK
-(green gilts) publish comparable series. All of these yields are published free
-by the respective debt management offices — which is why this framework needs no
-paid data subscription.
+The measurement uses sovereign **green "twin" bonds**: Germany issues each green
+Bund alongside a conventional Bund with the *same coupon and same maturity from
+the same issuer*, so the yield difference is the greenium almost by construction,
+with no matching model required. That is a cleaner identification strategy than
+the matched-pair regressions the literature relies on, not merely a free
+substitute for them. France (OAT verte) and the UK (green gilts) publish
+comparable series without the exact-twin structure.
+
+### Running the estimator
+
+`scripts/greenium.py` implements it:
+
+```bash
+python scripts/greenium.py --pairs data/green_twin_pairs.csv \
+                          --yields data/bund_yields.csv --strict
+```
+
+- **`--pairs`** is a registry of green/conventional pairs. The committed file is
+  a *template* (`green_twin_pairs.example.csv`) and the script refuses to run
+  while it still contains `FILL_ME` — populate it from the issuer's published
+  list so every ISIN traces to a primary source.
+- **`--yields`** is a tidy `date,isin,yield_pct` CSV of daily yields, downloaded
+  free from the relevant debt management office.
+- **`--strict`** refuses any pair that is not an exact twin. Without it,
+  non-twin pairs are usable but flagged, and the output reports each pair's
+  `maturity_gap_days` so a mismatched comparison can't be mistaken for a clean one.
+
+Inference is **Newey-West HAC corrected**. A daily yield spread is strongly
+autocorrelated, so the ordinary standard error of its mean is badly understated
+and an uncorrected t-test will find significance that is not there. The estimator
+reports the HAC standard error, the resulting t-statistic, the full distribution
+across pairs, and the share of days on which the spread was actually negative —
+because the published range (−2 to −20bps) is mostly heterogeneity across issuers
+and periods rather than disagreement about method.
+
+**No empirical estimate is claimed in this repository yet.** No yield data is
+committed, and I have not run the fetch. The estimator is tested against
+synthetic series with a known true greenium (`tests/test_greenium.py`, 34 tests),
+which verifies the arithmetic and the inference but is not a result.
 
 ## Skills Demonstrated
 
@@ -163,9 +213,11 @@ paid data subscription.
 - [x] Geographic and sector breakdown
 - [x] SLB vs green bond comparison
 - [x] Greenium literature review and matched-pair framework
+- [x] Greenium estimator implemented and unit-tested
+- [ ] Greenium empirical estimate *(needs a yield-data fetch — not yet run)*
 - [x] Reproducible build from committed source data
 - [x] Unit tests and CI
-- [ ] 3-page investment brief *(not started — no PDF in this repo yet)*
+- [x] Investment brief — three pages of analysis plus methodology and references
 
 ## Data Sources
 

@@ -35,6 +35,8 @@ jobs:
           python -m py_compile \
             project1-green-bond-analysis/scripts/clean.py \
             project1-green-bond-analysis/scripts/process_data.py \
+            project1-green-bond-analysis/scripts/greenium.py \
+            project1-green-bond-analysis/scripts/build_brief.py \
             project2-sll-structuring/scripts/sll.py \
             project2-sll-structuring/scripts/build_model.py \
             project3-climate-dashboard/app.py \
@@ -45,6 +47,8 @@ jobs:
           python -m pyflakes \
             project1-green-bond-analysis/scripts/clean.py \
             project1-green-bond-analysis/scripts/process_data.py \
+            project1-green-bond-analysis/scripts/greenium.py \
+            project1-green-bond-analysis/scripts/build_brief.py \
             project2-sll-structuring/scripts/sll.py \
             project2-sll-structuring/scripts/build_model.py \
             project3-climate-dashboard/app.py \
@@ -64,6 +68,24 @@ jobs:
           python project2-sll-structuring/scripts/build_model.py \
             --output /tmp/ci_sll.xlsx
           test -s /tmp/ci_sll.xlsx
+
+      - name: Investment brief rebuilds from its Markdown source
+        run: |
+          python project1-green-bond-analysis/scripts/build_brief.py \
+            --output /tmp/ci_brief.pdf
+          test -s /tmp/ci_brief.pdf
+
+      - name: Greenium estimator refuses the unpopulated template
+          # The committed pair registry is a template. If it ever estimated, the
+          # repo would publish numbers for securities that do not exist.
+        run: |
+          if python project1-green-bond-analysis/scripts/greenium.py \
+               --pairs project1-green-bond-analysis/data/green_twin_pairs.example.csv \
+               --yields project1-green-bond-analysis/data/green_twin_pairs.example.csv \
+               2>/dev/null; then
+            echo "FAIL: the template produced output instead of refusing"; exit 1
+          fi
+          echo "OK: template correctly refused"
 
       - name: No proprietary data references anywhere
         # The portfolio claims no Bloomberg/Refinitiv data is used. Text search
