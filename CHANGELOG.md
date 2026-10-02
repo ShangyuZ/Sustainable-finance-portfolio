@@ -4,6 +4,66 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.9.0] — 2026-10-02 — The greenium, measured; SLL structuring memo
+
+### Added — an actual greenium estimate
+
+The portfolio previously specified a greenium methodology and claimed no result.
+It now has one, from the issuer's own published data.
+
+- **`scripts/fetch_bund_yields.py`** — downloads the twin-bond pairs and daily
+  yields from the Deutsche Finanzagentur. The twin pairing is **derived, not
+  asserted**: for each green security the script collects the conventional ISINs
+  the issuer's factsheet links to, fetches each, and keeps the one whose coupon
+  and maturity match *exactly*. A green bond with no exact match is reported and
+  skipped — an approximate pair would reintroduce the matching error the twin
+  structure exists to remove. All nine outstanding green Federal securities
+  matched. Each factsheet embeds its full daily price and yield history as
+  Highcharts JSON, which is the data source; fetched HTML is cached on disk.
+- **The result**: pooled greenium **−1.50bps** (HAC SE 0.052, t = −28.7) across
+  **8,094 paired daily observations**, September 2020 to October 2026, negative on
+  99.8% of days, per-pair means −0.65bps to −2.40bps and all negative. No maturity
+  pattern (correlation 0.11), so it is a label effect rather than a term-structure
+  artefact.
+- **Two findings worth more than the level.** First, the HAC correction is not
+  cosmetic: on this data it **triples** the standard error, taking the
+  t-statistic from −94 to −28.7. On a shorter sample that factor is the difference
+  between a finding and an artefact. Second, the greenium has **compressed about
+  80% since 2021** — −4.71bps then, −0.76bps in 2025 — which is consistent with a
+  maturing market and sharpens the portfolio's thesis: at under 1bp the label
+  carries no funding incentive worth restructuring for.
+- `data/green_twin_pairs.csv` (9 coupon- and maturity-matched pairs) and
+  `data/bund_yields.csv` (17,656 daily observations across 18 securities) are
+  committed, so the estimate reproduces without network access.
+- **`tests/test_greenium_result.py`** — pins the published estimate against the
+  committed data, so the figures in the brief and FINDINGS.md cannot drift.
+  Verified by mutation: shifting the green legs by 10bps fails six of its tests.
+
+### Added — Project 2 structuring memo
+
+- **`memo/SLL_Structuring_Memo.md`** + generated PDF. A credit-committee-style
+  document that recommends structuring the facility as sustainability-linked
+  **but not presenting the ratchet as the commercial rationale**, and takes a view
+  on the KPI set rather than describing it: KPI 3 measures process (audit
+  *coverage*) not outcome, and the renewable SPT can be met largely through
+  procurement. Both accepted with stated conditions. Includes ranked integrity
+  risks, six conditions precedent, and an explicit list of what the analysis does
+  not claim.
+
+### Changed
+
+- `build_brief.py` generalised into a document-agnostic Markdown→PDF renderer:
+  title and footer derive from the document's own H1, so one renderer serves both
+  the brief and the memo.
+- The brief's §4 replaced its "no empirical claim" disclaimer with the measured
+  result, its uncertainty and the time trend. Its test now requires the estimate
+  to be reported *with* a standard error and t-statistic — a point estimate
+  without uncertainty is not a result.
+- CI lints the fetcher and rebuilds both documents.
+- 238 → **252 tests**.
+
+---
+
 ## [v0.8.0] — 2026-10-02 — Audit write-up, greenium estimator, investment brief
 
 ### Added

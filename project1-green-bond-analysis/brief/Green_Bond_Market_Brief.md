@@ -18,6 +18,7 @@ Disaggregated, the picture is narrower and more policy-dependent than the headli
 - **64% of volume is European.** Germany, France and the UK alone are 36.5%.
 - **The instrument with the strongest theoretical claim is the smallest.** Sustainability-linked bonds are 15% of deals but **3.4% of volume**, averaging $206m against green bonds' $1,077m.
 - **Average deal size has fallen 66%** since 2018, from $1,757m to $590m. The market is broadening — which is healthy — but broadening is not the private sector taking over.
+- **The pricing advantage is real but tiny, and shrinking.** Measuring Germany's green twin Bunds over 8,094 paired daily observations gives a greenium of **−1.50bps**, down from −4.71bps in 2021 to under 1bp today.
 
 **The investment implication:** labelled-debt supply is primarily a function of sovereign issuance programmes, not corporate ESG appetite. For anyone forecasting supply, the relevant calendar is the sovereign one.
 
@@ -123,9 +124,40 @@ The academic literature consistently finds a small negative premium — green bo
 
 These are not directly comparable — they differ in market, period, primary versus secondary pricing, and matching method. The spread of estimates is mostly heterogeneity, not disagreement about technique.
 
-**I make no empirical claim here.** I have implemented an estimator but not run it on market data. The approach is worth stating because it avoids the literature's central weakness: rather than modelling comparability, it uses Germany's green **twin** Bunds, where each green security has a conventional counterpart with the *same coupon, same maturity and same issuer*. The yield difference is then the greenium almost by construction. All the required yields are published free by the relevant debt management offices.
+### My own estimate: −1.50bps, and narrowing
 
-Were a greenium of 2–8bps confirmed, it would reinforce the argument above rather than undercut it: a few basis points is a weak incentive to restructure financing, and consistent with a market driven by sovereign funding strategy rather than by price.
+I measured it rather than citing it. The method avoids the literature's central weakness: instead of modelling comparability, it uses Germany's green **twin** Bunds, where each green security has a conventional counterpart with the *same coupon, same maturity and same issuer*. The yield difference is then the greenium almost by construction, with no matching model doing the work.
+
+All nine green Federal securities outstanding were matched to their exact twins — coupon and maturity identical on both legs — giving **8,094 paired daily observations from September 2020 to October 2026**, all from the issuer's own published data.
+
+| | |
+|---|---|
+| Pooled greenium | **−1.50bps** |
+| HAC standard error | 0.052 |
+| t-statistic | −28.7 |
+| Paired observations | 8,094 across 9 twin pairs |
+| Days with a negative spread | 99.8% |
+| Range of per-pair means | −0.65bps to −2.40bps |
+
+The greenium is small, highly persistent, and statistically unambiguous. It shows no maturity pattern (correlation between years-to-maturity and mean greenium: 0.11), so it is a label effect rather than a term-structure artefact.
+
+**Inference matters here.** A daily yield spread is strongly autocorrelated. The ordinary standard error gives t = −94; the Newey-West HAC standard error is **3.3× larger** and gives t = −28.7. The conclusion survives either way, but an uncorrected standard error would have overstated the precision threefold — and on a shorter sample it could easily manufacture significance that was not there.
+
+**The more interesting result is the trend.** The greenium has compressed by roughly 80% from its 2021 peak:
+
+| Year | Mean greenium | Obs |
+|---|---|---|
+| 2020 | −2.35bps | 80 |
+| 2021 | −4.71bps | 495 |
+| 2022 | −1.94bps | 855 |
+| 2023 | −2.27bps | 1,331 |
+| 2024 | −1.07bps | 1,695 |
+| 2025 | −0.76bps | 1,955 |
+| 2026 | −0.95bps | 1,683 |
+
+This is consistent with a maturing market: as green supply grew and the novelty premium faded, the pricing advantage eroded. It also sharpens the argument above. At −4.7bps there was at least a case that the label carried a funding benefit. At under 1bp, the benefit is inside the bid-offer spread on most days — too small to be a reason to issue, which is consistent with a market whose growth is driven by sovereign funding strategy rather than by price.
+
+My estimate sits close to Zerbib's −2bps and well below the primary-market studies' −15 to −20bps. That gap is expected rather than contradictory: those studies measure the concession at issuance, while this measures secondary-market trading in the most liquid sovereign curve in Europe, where any mispricing is arbitraged hardest.
 
 ---
 
@@ -145,11 +177,13 @@ Evidence that would change the conclusion: a full-market database showing corpor
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure regenerates from the committed CSV with one command, and the aggregations are covered by 238 unit tests.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure regenerates from the committed CSV with one command, and the aggregations are covered by 252 unit tests.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
-Sources are public throughout: Climate Bonds Initiative for issuance, published academic papers for the greenium evidence, and sovereign debt management offices for the yield framework. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
+The greenium estimate uses the Deutsche Finanzagentur's published daily price and yield series for each green Federal security and its conventional twin; the twin pairing is derived by matching coupon and maturity exactly, not asserted. `scripts/fetch_bund_yields.py` reproduces the download and `scripts/greenium.py` the estimate.
+
+Sources are public throughout: Climate Bonds Initiative for issuance, published academic papers for the comparative greenium evidence, and the Deutsche Finanzagentur for bond yields. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
 
 **Repository:** github.com/ShangyuZ/Sustainable-finance-portfolio
 

@@ -1,7 +1,8 @@
 """
-Investment brief — Markdown to PDF
-==================================
-Renders ``brief/Green_Bond_Market_Brief.md`` to PDF.
+Markdown to PDF renderer
+========================
+Renders a Markdown document to PDF — the investment brief by default, and the
+SLL structuring memo via ``--input``/``--output``.
 
 The Markdown file is the single source of truth; the PDF is generated, so the
 brief cannot drift from the figures the way a hand-maintained document would.
@@ -198,39 +199,55 @@ def parse(md: str, st: dict) -> list:
     return flow
 
 
-def footer(canvas, doc) -> None:
-    """Page number and attribution on every page."""
-    canvas.saveState()
-    canvas.setFont("Helvetica", 7)
-    canvas.setFillColor(GREY)
-    canvas.drawString(16 * mm, 10 * mm,
-                      "Green Bond Market Brief · ShangyuZ · UCL")
-    canvas.drawRightString(A4[0] - 16 * mm, 10 * mm, f"Page {doc.page}")
-    canvas.restoreState()
+def make_footer(label: str):
+    """Build a page-footer callback carrying ``label``."""
+    def footer(canvas, doc) -> None:
+        canvas.saveState()
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(GREY)
+        canvas.drawString(16 * mm, 10 * mm, label)
+        canvas.drawRightString(A4[0] - 16 * mm, 10 * mm, f"Page {doc.page}")
+        canvas.restoreState()
+    return footer
+
+
+def document_title(md: str) -> str:
+    """The document's H1, used for the PDF title and footer."""
+    for line in md.split("\n"):
+        if line.startswith("# "):
+            return line[2:].strip()
+    return "Document"
 
 
 def build(md_path: str, pdf_path: str) -> str:
-    """Render the Markdown brief to ``pdf_path``. Returns the output path."""
+    """
+    Render a Markdown document to ``pdf_path``. Returns the output path.
+
+    Document-agnostic: the title and footer come from the file's own H1, so the
+    same renderer serves the investment brief and the SLL structuring memo.
+    """
     with open(md_path, encoding="utf-8") as fh:
         md = fh.read()
 
+    title = document_title(md)
     st = styles()
     doc = SimpleDocTemplate(
         pdf_path, pagesize=A4,
         leftMargin=16 * mm, rightMargin=16 * mm,
         topMargin=14 * mm, bottomMargin=16 * mm,
-        title="Green Bond Market Brief",
+        title=title,
         author="ShangyuZ",
-        subject="What the labelled bond market actually is",
     )
-    doc.build(parse(md, st), onFirstPage=footer, onLaterPages=footer)
+    page_footer = make_footer(f"{title} · ShangyuZ · UCL")
+    doc.build(parse(md, st), onFirstPage=page_footer, onLaterPages=page_footer)
     return pdf_path
 
 
 def main() -> None:
     """Parse arguments and render the brief."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    parser = argparse.ArgumentParser(description="Render the investment brief to PDF")
+    parser = argparse.ArgumentParser(
+        description="Render a Markdown document (brief, memo) to PDF")
     parser.add_argument("--input",
                         default=os.path.join(here, "brief", "Green_Bond_Market_Brief.md"))
     parser.add_argument("--output",
