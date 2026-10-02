@@ -1,0 +1,17 @@
+# Streamlit reads .streamlit/config.toml relative to the WORKING DIRECTORY.
+# Streamlit Community Cloud runs from the repository root, so the theme must
+# live here as well as in project3-climate-dashboard/ (which is what applies
+# when running the app from inside that folder locally).
+#
+# tests/test_deployment.py asserts the two files are identical, so they cannot
+# drift apart.
+
+[theme]
+primaryColor        = "#1A7A4A"
+backgroundColor     = "#FFFFFF"
+secondaryBackgroundColor = "#F0F7F2"
+textColor           = "#1C1C1C"
+font                = "sans serif"
+
+[server]
+headless = true
