@@ -4,6 +4,31 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.9.1] — 2026-10-02 — Dashboard deployed
+
+### Added
+
+- The climate dashboard is live at
+  **https://shangyuz-sustainable-finance.streamlit.app** — public, no sign-in.
+  The live link and both document PDFs are now surfaced at the top of the root
+  README, which is where a first-time visitor actually looks.
+- `tests/test_deployment.py` gained guards for the published links: the live URL
+  must appear in both READMEs (so one cannot go stale while the other is
+  updated), the deployment status box must be ticked, and every PDF linked from
+  the root README must exist — a broken link on the landing page is worse than no
+  link.
+
+### Note
+
+An earlier check reported the app as private. That was wrong: the diagnostic used
+a cookie-less request, which loops forever on Streamlit's session handshake even
+for public apps. Re-tested with a cookie jar it returns HTTP 200 with no login
+wall. The sharing setting had been correct all along.
+
+- 252 → **255 tests**.
+
+---
+
 ## [v0.9.0] — 2026-10-02 — The greenium, measured; SLL structuring memo
 
 ### Added — an actual greenium estimate
