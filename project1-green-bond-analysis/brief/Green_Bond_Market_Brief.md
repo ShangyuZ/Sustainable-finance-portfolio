@@ -169,7 +169,7 @@ The honest limitations of this analysis:
 - **2024 is partial**, so the recent trend and the 11.8% SLB share are provisional.
 - **Sector is undisclosed for 65 deals** ($23.8bn, 3.7% of volume), shown as Unclassified rather than dropped or allocated.
 - **Two source records are known to be wrong** and are flagged rather than silently corrected: one issuer is tagged to the wrong country, and one 2015 transaction is labelled SLB years before that market existed.
-- **No greenium estimate** is claimed.
+- **The greenium estimate is German sovereign only.** It is the cleanest available estimate — the twin structure removes the matching problem rather than modelling around it — but it does not generalise to corporate issuers, to other sovereigns, or to primary-market pricing, where the published estimates are several times larger.
 
 Evidence that would change the conclusion: a full-market database showing corporate issuance materially larger than this extract implies; or SLB volume share continuing above ~10% through complete years, which would suggest the incentive problem matters less than I argue.
 
@@ -177,7 +177,7 @@ Evidence that would change the conclusion: a full-market database showing corpor
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure regenerates from the committed CSV with one command, and the aggregations are covered by 255 unit tests.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure regenerates from the committed CSV with one command, and the aggregations are covered by 262 unit tests.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
