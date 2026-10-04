@@ -157,8 +157,10 @@ st.sidebar.caption(
 if section == "🏭 EU Carbon Price":
     st.title("EU ETS Carbon Price")
     st.caption(
-        "European Union Allowance (EUA) weekly spot price — "
-        "compiled from public sources. Updated as new data becomes available."
+        "European Union Allowance (EUA) weekly spot price — indicative series "
+        "compiled from public sources, not a reference price. It tracks the broad "
+        "path of the market but is approximate: it understates the March 2022 "
+        "post-invasion drawdown and the February 2023 peak. See DATA.md."
     )
 
     df = load_eua_prices()
