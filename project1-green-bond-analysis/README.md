@@ -109,7 +109,7 @@ Options: `--input`, `--output`, `--min-year`.
 
 ```bash
 python scripts/build_brief.py   # regenerate the investment brief PDF
-pytest ../tests/                # 262 tests: cleaning, aggregation, model, brief, greenium
+pytest ../tests/                # 269 tests: cleaning, aggregation, model, brief, greenium
 ```
 
 ### The investment brief
