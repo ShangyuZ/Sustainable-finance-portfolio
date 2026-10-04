@@ -44,10 +44,22 @@ references were sitting inside an `.xlsx`, where no text search could find them)
 **→ [FINDINGS.md](./FINDINGS.md)** documents all of them, with mechanisms and
 quantified consequences. It is probably the most useful thing in this repository.
 
-All data is publicly available and openly licensed. No proprietary or restricted
-data is used anywhere — and CI now fails the build if a reference to one
-reappears, including inside the `.xlsx` files, where a plain text search would
-not find it.
+## How this was built, and what the data is
+
+**AI assistance.** This portfolio was built with substantial help from Claude
+(via Claude Code), and the commit history records it — the content commits are
+authored by `Claude <noreply@anthropic.com>`. I set the direction, decided what to
+investigate, made the calls on what to correct versus flag and leave, and verified
+the results. The analysis and its conclusions are mine to defend.
+
+**Data provenance.** This README used to claim that all data here is "openly
+licensed" and that "no proprietary or restricted data is used anywhere". That was
+an absolute statement about third-party rights which I had not verified, so it has
+been replaced with a per-source table in **[DATA.md](./DATA.md)** — including three
+datasets whose terms are *not* established. Two things remain true and are
+enforced: no paid-terminal data is used anywhere in the analysis, and CI fails the
+build if a vendor reference reappears, including inside the `.xlsx` files where a
+plain text search would not find it.
 
 [![CI](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml)
 
@@ -106,7 +118,7 @@ carbon intensity (WACI) calculator.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 262 tests
+pytest tests/                                            # 269 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -128,8 +140,10 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         262 tests across all three projects
+tests/                         269 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
+DATA.md                        per-source data provenance and licence status
+LICENSE                        MIT, covering the code and written analysis only
 .github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
 ```
 
@@ -145,15 +159,16 @@ spreadsheets cannot drift apart.
 
 ## Data Sources
 
-All data is open-access and freely licensed:
+Per-source terms, with the unverified ones marked — full detail in
+[DATA.md](./DATA.md):
 
 | Dataset | Source | Licence |
 |---------|--------|---------|
-| Green bond issuance | Climate Bonds Initiative (public reports) | Public |
+| Green bond issuance | Climate Bonds Initiative, "News Makers" | ❌ **terms not verified** |
 | Energy & electricity mix by country | Our World in Data — [energy dataset](https://github.com/owid/energy-data) | CC BY 4.0 |
 | CO₂ emissions by country | Our World in Data — [CO2 dataset](https://github.com/owid/co2-data) | CC BY 4.0 |
-| EU ETS carbon prices | Compiled from public sources (bundled) | Public |
-| Sovereign green bond yields | Finanzagentur (DE), AFT (FR), UK DMO | Public |
+| EU ETS carbon prices | "Compiled from public sources" (bundled) | ❌ uncited, **indicative only** |
+| Sovereign green bond yields | Deutsche Finanzagentur | ⚠️ public-sector info, unverified |
 | Academic greenium evidence | Published papers (cited) | Academic |
 
 ---

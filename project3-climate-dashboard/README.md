@@ -11,7 +11,7 @@ finance desk — built entirely on freely licensed, open datasets.
 
 | # | Section | Data source |
 |---|---------|------------|
-| 1 | **EU Carbon Price** | Bundled EUA weekly price history (public sources) |
+| 1 | **EU Carbon Price** | Bundled EUA weekly history — *indicative, uncited* (see [DATA.md](../DATA.md)) |
 | 2 | **Energy Transition** | OWID energy dataset (electricity mix) + OWID CO2 dataset |
 | 3 | **Country Climate Scorecard** | OWID energy + CO2 — ranked CO₂ per capita & renewables |
 | 4 | **Portfolio Carbon Calculator** | TCFD-aligned sector benchmarks (public) |
@@ -61,7 +61,7 @@ countries reporting every metric it needs, and states which year that is.
 |------|-------------|
 | `app.py` | Streamlit UI, data loading and caching |
 | `transforms.py` | Pure calculations — no Streamlit, no network, unit-tested |
-| `data/eua_prices.csv` | Weekly EUA spot prices 2018–2026 |
+| `data/eua_prices.csv` | Weekly EUA prices 2018–2026 — **indicative only**, see [DATA.md](../DATA.md) |
 | `.streamlit/config.toml` | Green theme configuration |
 | `requirements.txt` | Python dependencies |
 
