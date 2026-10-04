@@ -4,6 +4,57 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.10.0] — 2026-10-04 — Pre-publication: licensing claim, AI disclosure, LICENSE
+
+### Fixed — an unverified claim about third-party rights
+
+The root README asserted *"All data is publicly available and openly licensed. No
+proprietary or restricted data is used anywhere."* That is an absolute statement
+about **other people's** rights, and nobody had verified it. It is the same
+failure mode FINDINGS.md §1 documents about the Bloomberg claim — applied, this
+time, to a sentence with legal exposure attached rather than reputational.
+
+- **`DATA.md`** — per-source provenance table replacing the blanket claim, which
+  marks three datasets as unresolved rather than assuming them clean:
+  - *Climate Bonds Initiative issuance* (732 records): redistribution terms
+    **not verified**. Present in the repository twice — the CSV and sheet 8 of
+    the workbook — and present since the original March 2026 commit, so removing
+    the CSV alone would change nothing. Resolving it requires reading CBI's terms.
+  - *Deutsche Finanzagentur yields* (17,656 rows): German public-sector
+    information, likely reusable, **terms unread**. Fully reproducible from
+    `fetch_bund_yields.py`, so removable without losing reproducibility.
+  - *EU ETS allowance prices*: **uncited and demonstrably approximate**. Checked
+    against known history it misses the March 2022 post-invasion crash (shows
+    ~€76–78 where allowances fell to ~€58) and understates the Feb 2023 peak.
+    Now labelled indicative in the dashboard UI, the project README and DATA.md.
+- **`LICENSE`** — MIT, explicitly scoped to the original code and written
+  analysis, and explicitly **not** covering the third-party datasets. The repo
+  previously had no licence at all, defaulting to all-rights-reserved.
+
+### Changed — AI-use disclosure
+
+The content commits are authored by `Claude <noreply@anthropic.com>`, which is
+public, but the prose was uniformly first person. The README now states plainly
+that the portfolio was built with substantial AI assistance, what the division of
+labour was, and that the conclusions are the author's to defend. FINDINGS.md's
+opening says the audit was done working with an AI assistant, and its §1 now
+records the licensing lapse as a second instance of the same lesson.
+
+### Added
+
+- Guards so none of this can regress: no document may *assert* a blanket
+  licensing claim; `DATA.md` must exist and must mark the unverified sources;
+  `LICENSE` must disclaim the third-party data.
+- The guard distinguishes **asserting** the claim from **quoting** it, since both
+  the README and FINDINGS.md reproduce the retired sentence to explain its
+  withdrawal. It parses quotation spans across the whole document, because a
+  per-line parser mis-pairs quote characters when a quotation wraps a line — which
+  it does in both files. Two earlier attempts failed on exactly that and were
+  caught by mutation testing.
+- 262 → **269 tests**.
+
+---
+
 ## [v0.9.2] — 2026-10-02 — Remove contradictory disclaimers of the greenium estimate
 
 ### Fixed

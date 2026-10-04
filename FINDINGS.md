@@ -2,17 +2,19 @@
 
 I built the first version of this portfolio over a few months, then stepped away
 from it for the summer. When I came back in October 2026 I decided not to add
-features but to audit what I already had — reading my own code and workbooks as
-if someone else had written them and I had to sign off on the numbers.
+features but to audit what I already had, working with an AI assistant (Claude)
+to read the code and workbooks as if someone else had written them and I had to
+sign off on the numbers. That collaboration is visible in the commit history, and
+how it was used is described in the [README](./README.md).
 
-I found five things wrong. Two of them meant features that had never worked at
-all. One of them meant the portfolio's own headline claim was false. This file
-documents all of them, with the mechanism and the consequence, because a
-portfolio that only shows the finished surface tells you nothing about whether
-the person can be trusted with the parts you can't see.
+The audit surfaced five defects. Two of them meant features that had never worked
+at all. One meant the portfolio's own headline claim was false. This file
+documents all of them, with the mechanism and the consequence, because a portfolio
+that only shows the finished surface tells you nothing about whether the person
+can be trusted with the parts you can't see.
 
 Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 262 tests). The fixes are in
+suite (`pytest tests/` — 269 tests). The fixes are in
 [PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
 
 ---
@@ -88,6 +90,14 @@ cell, so the claim is enforced rather than asserted:
 make. I had written the sentence once and then trusted it for months. The
 version of me that wrote "removed throughout" in the changelog genuinely
 believed it.
+
+**And it happened again, in the same README.** The sentence immediately after the
+Bloomberg claim made a second absolute assertion, this time about *third-party*
+rights rather than my own sourcing, and nobody had verified it either. Caught before publication, and replaced with a
+per-source table in [DATA.md](./DATA.md) that marks three datasets as unresolved.
+The lesson evidently needed applying twice: the first instance was a claim about
+my own sources, the second about other people's rights, which is the more
+expensive one to get wrong.
 
 ---
 

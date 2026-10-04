@@ -15,6 +15,7 @@ silently before these tests existed:
 
 from __future__ import annotations
 
+import re
 import tomllib
 from pathlib import Path
 
@@ -119,6 +120,106 @@ def test_local_module_sits_beside_the_app():
 def test_bundled_data_is_present():
     """The EUA chart falls back to synthetic data without this file."""
     assert (DASHBOARD / "data" / "eua_prices.csv").exists()
+
+
+# ── claims about third-party rights ──────────────────────────────────────────
+
+BLANKET_LICENCE_CLAIM = re.compile(
+    r"all data[^.]{0,60}(openly licensed|freely licensed)"
+    r"|no proprietary or restricted data is used anywhere", re.I)
+
+
+def _quoted_spans(text: str) -> list[tuple[int, int]]:
+    """
+    Character ranges inside double quotes, straight or curly.
+
+    Operates on the whole document rather than per line, because a quotation in
+    prose is routinely wrapped across a line break — and a per-line parser
+    mis-pairs the quote characters when it is.
+    """
+    spans, open_at = [], None
+    for i, ch in enumerate(text):
+        if ch in '"\u201c\u201d':
+            if open_at is None:
+                open_at = i
+            else:
+                spans.append((open_at, i))
+                open_at = None
+    return spans
+
+
+def _blanket_licence_assertions(text: str) -> list[str]:
+    """
+    Every place the text *makes* the blanket claim, rather than quoting it.
+
+    FINDINGS.md and the README both reproduce the retired sentence to explain why
+    it was withdrawn; a guard that could not tell the difference would stop the
+    repository describing its own corrections.
+    """
+    spans = _quoted_spans(text)
+    lowered = text.lower()
+    found = []
+    for match in BLANKET_LICENCE_CLAIM.finditer(text):
+        asserted = False
+        for phrase in ("openly licensed", "freely licensed", "used anywhere"):
+            start = match.start()
+            i = lowered.find(phrase, start, match.end() + len(phrase))
+            if i == -1:
+                continue
+            if not any(a < i and i + len(phrase) <= b + 1 for a, b in spans):
+                asserted = True
+        if asserted:
+            found.append(" ".join(text[match.start():match.end() + 40].split()))
+    return found
+
+
+@pytest.mark.parametrize("rel", ["README.md", "project1-green-bond-analysis/README.md",
+                                 "project3-climate-dashboard/README.md", "FINDINGS.md"])
+def test_no_unverified_blanket_licensing_claim(rel):
+    """
+    No document may assert that *all* data here is openly licensed.
+
+    Three datasets have unverified or unknown terms (DATA.md). A blanket claim
+    about third-party rights that nobody checked is the same failure mode as the
+    Bloomberg claim in FINDINGS.md section 1, with legal exposure attached.
+    """
+    path = ROOT / rel
+    if not path.exists():
+        pytest.skip(f"{rel} not present")
+    hits = _blanket_licence_assertions(path.read_text(encoding="utf-8"))
+    assert not hits, f"unverified blanket licensing claim in {rel}:\n  " + "\n  ".join(hits)
+
+
+def test_the_guard_still_catches_a_real_assertion():
+    """The guard must not be so permissive that it never fires."""
+    assert _blanket_licence_assertions("All data is publicly available and openly licensed.")
+    assert _blanket_licence_assertions("No proprietary or restricted data is used anywhere.")
+    # A quoted, retrospective mention is allowed — including across a line break,
+    # which is how it actually appears in the README and FINDINGS.md.
+    assert not _blanket_licence_assertions(
+        'It used to claim that all data here is "openly licensed" and that\n'
+        '"no proprietary or restricted data is used anywhere". That was never verified.')
+
+
+def test_data_provenance_file_exists_and_marks_the_unverified():
+    """DATA.md must exist and must not quietly mark everything as fine."""
+    data_md = ROOT / "DATA.md"
+    assert data_md.exists(), "DATA.md is missing; the README defers to it"
+    text = data_md.read_text(encoding="utf-8")
+    assert "not verified" in text.lower()
+    for dataset in ("Climate Bonds", "Finanzagentur", "eua_prices"):
+        assert dataset in text, f"DATA.md does not cover {dataset}"
+
+
+def test_licence_file_exists_and_scopes_itself_to_original_work():
+    """
+    A licence that implicitly covered the third-party data would be a claim we
+    cannot make.
+    """
+    licence = ROOT / "LICENSE"
+    assert licence.exists(), "no LICENSE: the repo defaults to all-rights-reserved"
+    text = licence.read_text(encoding="utf-8")
+    assert "does NOT cover the third-party datasets" in text
 
 
 # ── the published links ──────────────────────────────────────────────────────
