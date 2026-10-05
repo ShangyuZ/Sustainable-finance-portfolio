@@ -3,16 +3,20 @@ Pins the committed greenium estimate.
 
 `test_greenium.py` checks the estimator's arithmetic against synthetic series.
 This file checks the *published result* — the figures quoted in the investment
-brief and in FINDINGS.md — against the committed data, so the documents and the
-data cannot drift apart. If the yield file is refreshed and the estimate moves,
-these tests fail and the write-ups get updated deliberately rather than silently.
+brief and in FINDINGS.md — against the committed estimator output, so the
+documents and the numbers cannot drift apart.
 
-Skips cleanly when the fetched data is absent, since it is reproducible with
-`scripts/fetch_bund_yields.py` but not required to run the rest of the suite.
+The daily Bund yields are not committed: Finanzagentur reserves all rights in
+their published data (see DATA.md). What is committed is this project's own
+derived output — the per-pair summary, the yearly series and the diagnostics —
+and every figure in the brief is checked against those. Running
+`scripts/fetch_bund_yields.py` restores the yields from the issuer in one
+command, and the handful of tests that need record-level data then run too.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from pathlib import Path
@@ -26,6 +30,9 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "project1-green-bond-analysis" / "data"
 PAIRS = DATA / "green_twin_pairs.csv"
 YIELDS = DATA / "bund_yields.csv"
+SUMMARY = DATA / "greenium_summary.csv"
+BY_YEAR = DATA / "greenium_by_year.csv"
+DIAGNOSTICS = DATA / "greenium_diagnostics.json"
 BRIEF = ROOT / "project1-green-bond-analysis" / "brief" / "Green_Bond_Market_Brief.md"
 
 # The published estimate. Tolerances are wide enough to absorb a few extra days
@@ -34,135 +41,257 @@ PUBLISHED_POOLED_BPS = -1.50
 PUBLISHED_N_PAIRS = 9
 
 
+# ── the committed estimator output ───────────────────────────────────────────
+
 @pytest.fixture(scope="module")
-def spreads() -> pd.DataFrame:
+def summary() -> pd.DataFrame:
+    """Per-pair and pooled estimates, as published."""
+    assert SUMMARY.exists(), f"{SUMMARY} is a committed artifact and must be present"
+    return pd.read_csv(SUMMARY)
+
+
+@pytest.fixture(scope="module")
+def pooled_row(summary) -> pd.Series:
+    """The pooled row of the published summary."""
+    hit = summary.loc[summary["Pair"] == "POOLED"]
+    assert len(hit) == 1, "the summary must carry exactly one POOLED row"
+    return hit.iloc[0]
+
+
+@pytest.fixture(scope="module")
+def by_year() -> pd.DataFrame:
+    """The published yearly series."""
+    assert BY_YEAR.exists(), f"{BY_YEAR} is a committed artifact and must be present"
+    return pd.read_csv(BY_YEAR)
+
+
+@pytest.fixture(scope="module")
+def diagnostics() -> dict:
+    """The published diagnostics that qualify the estimate."""
+    assert DIAGNOSTICS.exists(), f"{DIAGNOSTICS} is a committed artifact and must be present"
+    return json.loads(DIAGNOSTICS.read_text(encoding="utf-8"))
+
+
+# ── record-level data, for whoever has a licensed copy ───────────────────────
+
+@pytest.fixture(scope="module")
+def spreads() -> pd.DataFrame | None:
+    """
+    The daily spread panel, if the fetched yields are present.
+
+    ``None`` in CI: the yields are not redistributed. The published figures are
+    checked against the committed estimator output regardless; these tests add
+    the end-to-end recomputation on top, for anyone who has run the fetcher.
+    """
     if not (PAIRS.exists() and YIELDS.exists()):
-        pytest.skip("fetched Bund data not present — run scripts/fetch_bund_yields.py")
+        return None
     pairs = G.load_pairs(str(PAIRS), strict=True)
     return G.build_spreads(pairs, G.load_yields(str(YIELDS)))
 
 
-@pytest.fixture(scope="module")
-def pooled(spreads) -> G.GreeniumEstimate:
-    return G.estimate(spreads["greenium_bps"], "POOLED")
+def _require(spreads):
+    """Skip with an actionable reason when the fetched yields are absent."""
+    if spreads is None:
+        pytest.skip("Bund yields not present — run scripts/fetch_bund_yields.py "
+                    "(not redistributed; see DATA.md)")
+    return spreads
 
 
 # ── the pairs are genuine exact twins ────────────────────────────────────────
 
-def test_every_pair_is_an_exact_twin():
+def test_every_pair_is_an_exact_twin(summary):
     """
     The whole methodological claim rests on this.
 
     If a pair's coupon or maturity differs, the yield difference is no longer the
     greenium by construction and the estimate inherits a matching assumption.
+    Read from the published summary, which records the basis of every pair it
+    reports, so the claim is checked against what was actually published.
     """
-    if not PAIRS.exists():
-        pytest.skip("pairs file not present")
+    pairs = summary.loc[summary["Pair"] != "POOLED"]
+    assert len(pairs) == PUBLISHED_N_PAIRS
+    assert (pairs["Basis"] == "exact twin").all(), (
+        "a pair the summary does not call an exact twin: "
+        + ", ".join(pairs.loc[pairs["Basis"] != "exact twin", "Pair"]))
+
+
+def test_pooled_row_covers_only_exact_twins(summary, pooled_row):
+    """The pooled figure must not quietly mix in a non-twin pair."""
+    assert pooled_row["Basis"] == "all exact twins"
+    pairs = summary.loc[summary["Pair"] != "POOLED"]
+    assert pooled_row["Obs"] == pairs["Obs"].sum(), (
+        "pooled observation count does not equal the sum of its pairs")
+
+
+def test_pair_ids_are_distinct_and_well_formed(summary):
+    """Each pair is identified by its maturity and coupon, and appears once."""
+    pairs = summary.loc[summary["Pair"] != "POOLED", "Pair"]
+    assert pairs.nunique() == len(pairs)
+    assert pairs.str.match(r"^\d{4}-\d{2}_\d+\.\d+pct$").all(), (
+        "malformed pair id: " + ", ".join(
+            pairs[~pairs.str.match(r"^\d{4}-\d{2}_\d+\.\d+pct$")]))
+
+
+def test_pair_registry_is_genuine_when_present(spreads):
+    """
+    With a fetched registry present, re-verify the twin structure from the ISINs.
+
+    This is the check the published summary cannot make for itself: that both
+    legs are distinct German federal securities. It needs the registry, which is
+    regenerated by the fetcher rather than committed.
+    """
+    _require(spreads)
     pairs = G.load_pairs(str(PAIRS), strict=True)   # strict=True raises on non-twins
     assert len(pairs) == PUBLISHED_N_PAIRS
     assert bool(pairs["twin_exact"].all())
     assert (pairs["maturity_gap_days"] == 0).all()
-
-
-def test_pairs_have_distinct_legs():
-    if not PAIRS.exists():
-        pytest.skip("pairs file not present")
-    pairs = G.load_pairs(str(PAIRS))
     assert (pairs["green_isin"] != pairs["conventional_isin"]).all()
     assert pairs["green_isin"].nunique() == len(pairs)
     assert pairs["conventional_isin"].nunique() == len(pairs)
-
-
-def test_all_legs_are_german_federal_isins():
-    if not PAIRS.exists():
-        pytest.skip("pairs file not present")
-    pairs = G.load_pairs(str(PAIRS))
     for col in ("green_isin", "conventional_isin"):
         assert pairs[col].str.match(r"^DE[0-9A-Z]{10}$").all()
 
 
 # ── the published estimate ───────────────────────────────────────────────────
 
-def test_pooled_estimate_matches_the_published_figure(pooled):
-    assert pooled.mean_bps == pytest.approx(PUBLISHED_POOLED_BPS, abs=0.25)
+def test_pooled_estimate_matches_the_published_figure(pooled_row):
+    assert pooled_row["Mean (bps)"] == pytest.approx(PUBLISHED_POOLED_BPS, abs=0.25)
 
 
-def test_greenium_is_negative_and_significant(pooled):
+def test_greenium_is_negative_and_significant(pooled_row):
     """Negative and distinguishable from zero — both are required."""
-    assert pooled.mean_bps < 0
-    assert pooled.significant_5pct
-    assert pooled.greenium_exists
+    assert pooled_row["Mean (bps)"] < 0
+    assert abs(pooled_row["t-stat"]) > 1.96
+    assert pooled_row["Greenium at 5%"] == "yes"
 
 
-def test_sample_is_large_enough_to_report(pooled):
-    assert pooled.n_obs > 5_000
+def test_sample_is_large_enough_to_report(pooled_row):
+    assert pooled_row["Obs"] > 5_000
 
 
-def test_spread_is_negative_on_almost_every_day(pooled):
+def test_spread_is_negative_on_almost_every_day(pooled_row):
     """Persistence is the striking feature; a flaky sign would undercut the claim."""
-    assert pooled.share_negative > 0.95
+    assert pooled_row["% days negative"] > 95.0
 
 
-def test_hac_standard_error_exceeds_the_iid_one(spreads):
+def test_hac_standard_error_exceeds_the_iid_one(diagnostics):
     """
     On this data the HAC correction roughly triples the standard error.
 
     Reported in the brief as 3.3x. If this inverted, every figure in the write-up
-    would be overconfident.
+    would be overconfident — an uncorrected standard error on a strongly
+    autocorrelated daily series overstates precision.
     """
+    assert diagnostics["pooled_hac_se_bps"] > diagnostics["pooled_ordinary_se_bps"] * 2.0
+    assert diagnostics["hac_se_inflation_factor"] == pytest.approx(3.3, abs=0.5)
+    assert abs(diagnostics["pooled_ordinary_t"]) > abs(diagnostics["pooled_hac_t"])
+
+
+def test_hac_estimator_reproduces_the_published_se(spreads, diagnostics):
+    """With the yields present, recompute the HAC standard error end to end."""
+    _require(spreads)
     x = spreads["greenium_bps"]
     iid = float(x.std(ddof=1) / math.sqrt(len(x)))
     assert G.hac_standard_error(x) > iid * 2.0
+    assert G.hac_standard_error(x) == pytest.approx(
+        diagnostics["pooled_hac_se_bps"], abs=0.01)
 
 
-def test_every_pair_shows_a_negative_mean(spreads):
+def test_every_pair_shows_a_negative_mean(summary):
     """The brief states the per-pair range as -0.65 to -2.40bps, all negative."""
-    per_pair = spreads.groupby("pair_id")["greenium_bps"].mean()
+    per_pair = summary.loc[summary["Pair"] != "POOLED", "Mean (bps)"]
     assert (per_pair < 0).all()
     assert per_pair.min() > -5.0      # no pair is an outlier by an order of magnitude
+    assert per_pair.max() <= -0.5     # and none is indistinguishable from zero
 
 
-def test_no_maturity_term_structure(spreads):
+def test_no_maturity_term_structure(diagnostics):
     """
     The brief claims the greenium is a label effect, not a maturity artefact,
     citing a correlation of 0.11 between years-to-maturity and mean greenium.
     """
-    pairs = G.load_pairs(str(PAIRS))
-    years = ((pd.to_datetime(pairs["green_maturity"]) - pd.Timestamp("2026-10-01"))
-             .dt.days / 365.25)
-    means = spreads.groupby("pair_id")["greenium_bps"].mean()
-    merged = pd.DataFrame({"pair_id": pairs["pair_id"], "years": years}).merge(
-        means.rename("mean_bps").reset_index(), on="pair_id")
-    assert abs(merged["years"].corr(merged["mean_bps"])) < 0.5
+    assert abs(diagnostics["maturity_vs_greenium_corr"]) < 0.5
+
+
+def test_published_summary_is_reproducible(spreads, summary):
+    """
+    With the yields present, the committed summary must be exactly reproducible.
+
+    This is what makes the committed output trustworthy as a stand-in for the
+    data: re-running the estimator on the fetched yields reproduces it.
+    """
+    _require(spreads)
+    fresh = G.estimate_by_pair(spreads)
+    pd.testing.assert_frame_equal(
+        fresh.reset_index(drop=True), summary.reset_index(drop=True),
+        check_dtype=False, check_column_type=False)
 
 
 # ── the compression finding ──────────────────────────────────────────────────
 
-def test_greenium_has_compressed_since_2021(spreads):
+def test_greenium_has_compressed_since_2021(by_year):
     """
     The brief's headline trend: roughly an 80% compression from the 2021 peak.
 
     This is the finding most worth protecting, because it is the one a reader is
     most likely to quote.
     """
-    by_year = spreads.assign(year=pd.to_datetime(spreads["date"]).dt.year) \
-                     .groupby("year")["greenium_bps"].mean()
-    assert 2021 in by_year.index and 2025 in by_year.index
-    assert by_year.loc[2021] < -3.0      # clearly wide in 2021
-    assert by_year.loc[2025] > -1.5      # clearly narrow by 2025
-    assert by_year.loc[2025] > by_year.loc[2021]
+    means = by_year.set_index("Year")["Mean (bps)"]
+    assert 2021 in means.index and 2025 in means.index
+    assert means.loc[2021] < -3.0      # clearly wide in 2021
+    assert means.loc[2025] > -1.5      # clearly narrow by 2025
+    assert means.loc[2025] > means.loc[2021]
+    compression = 1 - means.loc[2025] / means.loc[2021]
+    assert compression == pytest.approx(0.8, abs=0.1), (
+        f"the brief claims roughly 80% compression; this is {compression:.0%}")
+
+
+def test_yearly_series_reconciles_with_the_pooled_row(by_year, pooled_row):
+    """The yearly breakdown must account for every pooled observation."""
+    assert by_year["Obs"].sum() == pooled_row["Obs"]
+    assert by_year["Year"].is_monotonic_increasing
+    assert (by_year["Mean (bps)"] < 0).all(), "every year shows a greenium"
+
+
+def test_brief_quotes_the_yearly_series(by_year):
+    """
+    Every row of the brief's compression table must match the computed series.
+
+    The table is the brief's most quotable exhibit, so each figure in it is
+    pinned rather than just the trend direction.
+    """
+    if not BRIEF.exists():
+        pytest.skip("brief not present")
+    text = BRIEF.read_text(encoding="utf-8").replace("\u2212", "-")
+    for _, row in by_year.iterrows():
+        assert f"{row['Mean (bps)']:.2f}bps" in text, (
+            f"brief does not quote the {int(row['Year'])} mean "
+            f"{row['Mean (bps)']:.2f}bps")
+        assert f"{int(row['Obs']):,}" in text, (
+            f"brief does not quote the {int(row['Year'])} observation count")
+
+
+def test_published_yearly_series_is_reproducible(spreads, by_year):
+    """With the yields present, the committed yearly series must reproduce."""
+    _require(spreads)
+    fresh = G.estimate_by_year(spreads)
+    pd.testing.assert_frame_equal(
+        fresh.reset_index(drop=True), by_year.reset_index(drop=True),
+        check_dtype=False, check_column_type=False)
 
 
 # ── the brief must quote what the data says ──────────────────────────────────
 
-def test_brief_quotes_the_computed_estimate(pooled):
+def test_brief_quotes_the_computed_estimate(pooled_row, diagnostics):
     if not BRIEF.exists():
         pytest.skip("brief not present")
     # The brief uses a typographic minus (U+2212); normalise before comparing.
     text = BRIEF.read_text(encoding="utf-8").replace("\u2212", "-")
-    assert f"{pooled.mean_bps:.2f}" in text, (
-        f"brief does not quote the computed pooled estimate {pooled.mean_bps:.2f}bps")
-    assert f"{pooled.n_obs:,}" in text, "brief does not quote the observation count"
+    assert f"{pooled_row['Mean (bps)']:.2f}" in text, (
+        f"brief does not quote the pooled estimate {pooled_row['Mean (bps)']:.2f}bps")
+    assert f"{int(pooled_row['Obs']):,}" in text, "brief does not quote the observation count"
+    assert f"{abs(pooled_row['t-stat']):.1f}" in text, "brief does not quote the t-statistic"
+    assert f"{diagnostics['n_pairs']}" in text, "brief does not quote the pair count"
 
 
 # Matches any form of "no empirical/greenium estimate is claimed". The earlier

@@ -1,21 +1,29 @@
 """
 Green Bond Market Analysis — Excel model builder
 ================================================
-Builds a nine-sheet Excel model from the cleaned CBI News Makers extract.
-Cleaning and aggregation live in ``clean.py``; this module is presentation only.
+Builds an eight-sheet Excel model from the aggregated CBI News Makers extract.
+Cleaning and aggregation live in ``clean.py``, the tables in ``aggregates.py``;
+this module is presentation only.
 
 Usage:
-    python scripts/process_data.py                       # uses the defaults below
-    python scripts/process_data.py --input data/cbi_newsmakers.csv \
-                                   --output Green_Bond_Market_Analysis.xlsx
+    python scripts/process_data.py                       # committed aggregates
+    python scripts/process_data.py --input /path/to/cbi_newsmakers.csv
+
+With no ``--input`` the model is built from the derived tables committed in
+``data/aggregates/``, so it regenerates from this repository alone. Given the
+source extract it recomputes those tables first; both paths produce the same
+workbook (``tests/test_aggregates.py`` checks this).
+
+The record-level extract itself is not redistributed here — CBI's terms of use
+prohibit reproducing or storing their content without prior written permission,
+so this repository carries the derived statistics instead of the dataset. See
+DATA.md.
 
 Outputs:
     Green_Bond_Market_Analysis.xlsx
 
-Every figure in the workbook is computed from the input CSV at build time —
-nothing is hardcoded, so the model regenerates cleanly when the dataset is
-extended. All inputs are public: the CBI News Makers extract and published
-academic papers. No proprietary terminal data is used or required.
+No figure is hardcoded; every number is computed at build time. All inputs are
+public, and no proprietary terminal data is used or required.
 """
 
 from __future__ import annotations
@@ -28,13 +36,13 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.worksheet import Worksheet
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import clean as C  # noqa: E402  (path set above so the script runs from anywhere)
+from aggregates import DEFAULT_DIR, Aggregates  # noqa: E402
 
 # ── colour palette ─────────────────────────────────────────────────────────
 GREEN = "1A7A4A"
@@ -112,9 +120,10 @@ def write_df(ws: Worksheet, df: pd.DataFrame, start_row: int = 2,
 
 # ── sheets ─────────────────────────────────────────────────────────────────
 
-def sheet_dashboard(wb: Workbook, df: pd.DataFrame, m: dict) -> None:
+def sheet_dashboard(wb: Workbook, A: Aggregates) -> None:
     """Executive summary: headline KPIs, key findings, and a scope reconciliation."""
     ws = wb.create_sheet("0. Summary Dashboard")
+    m = A.metrics
     title_bar(ws, 1, 6, "GREEN BOND MARKET ANALYSIS — EXECUTIVE SUMMARY")
     ws.cell(row=2, column=1,
             value="UCL Sustainable Finance Portfolio · Project 1 · ShangyuZ").font = Font(
@@ -139,11 +148,11 @@ def sheet_dashboard(wb: Workbook, df: pd.DataFrame, m: dict) -> None:
         s.font = Font(italic=True, size=8, color=GREY)
         s.alignment = Alignment(horizontal="center", wrap_text=True)
 
-    agg = C.annual_issuance(df)
-    themes = C.theme_totals(df)
-    sec = C.sector(df)
-    geo = C.geographic(df, top_n=3)
-    slb = C.slb_vs_green(df)
+    agg = A.annual
+    themes = A.theme
+    sec = A.sector
+    geo = A.countries(3)
+    slb = A.slb
 
     first_full = agg[agg["Deals"] >= 10]["Year"].min()
     peak_deal_year = int(agg.loc[agg["Deals"].idxmax(), "Year"])
@@ -221,12 +230,11 @@ def sheet_dashboard(wb: Workbook, df: pd.DataFrame, m: dict) -> None:
     widths(ws, {"A": 20, "B": 26, "C": 20, "D": 18, "E": 18, "F": 20})
 
 
-def sheet_data_quality(wb: Workbook, raw_path: str, df: pd.DataFrame) -> None:
+def sheet_data_quality(wb: Workbook, A: Aggregates) -> None:
     """Document every cleaning rule applied, with the record count each affected."""
     ws = wb.create_sheet("1. Data Quality")
     title_bar(ws, 1, 3, "DATA QUALITY — CLEANING RULES APPLIED")
-    dq = C.data_quality_report(raw_path, df)
-    last = write_df(ws, dq, start_row=3)
+    last = write_df(ws, A.quality, start_row=3)
     for r in range(4, last + 1):
         ws.cell(row=r, column=3).alignment = Alignment(wrap_text=True, vertical="top")
         ws.row_dimensions[r].height = 34
@@ -237,8 +245,11 @@ def sheet_data_quality(wb: Workbook, raw_path: str, df: pd.DataFrame) -> None:
          "dirty in ways that silently distort the analysis: an undisclosed sector "
          "encoded as the string \"0\" shows up as a sector in its own right, and one "
          "country split across two spellings has its volume split too. Every rule "
-         "above is applied in code (scripts/clean.py) and is reversible — the raw "
-         "extract in data/ is unmodified.")
+         "above is applied in code (scripts/clean.py) and is reversible — nothing is "
+         "edited by hand, and the source extract is never modified. The extract "
+         "itself is not redistributed with this model: CBI's terms of use do not "
+         "permit it, so what ships here is the derived aggregates in "
+         "data/aggregates/ (see DATA.md).")
     section(ws, last + 6, "KNOWN SOURCE ISSUES NOT CORRECTED")
     note(ws, last + 7, 3,
          "Two source records look wrong but have been left as published rather than "
@@ -250,10 +261,10 @@ def sheet_data_quality(wb: Workbook, raw_path: str, df: pd.DataFrame) -> None:
     widths(ws, {"A": 46, "B": 18, "C": 72})
 
 
-def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
+def sheet_annual(wb: Workbook, A: Aggregates) -> None:
     """Annual issuance: deals, USD volume, and both YoY growth series, with charts."""
     ws = wb.create_sheet("2. Annual Issuance")
-    agg = C.annual_issuance(df)
+    agg = A.annual
     yr_min, yr_max = int(agg["Year"].min()), int(agg["Year"].max())
     title_bar(ws, 1, 5, f"ANNUAL ISSUANCE ({yr_min}–{yr_max})")
 
@@ -292,11 +303,13 @@ def sheet_annual(wb: Workbook, df: pd.DataFrame) -> None:
     widths(ws, {"A": 8, "B": 12, "C": 18, "D": 14, "E": 14})
 
 
-def sheet_geography(wb: Workbook, df: pd.DataFrame) -> None:
+def sheet_geography(wb: Workbook, A: Aggregates) -> None:
     """Top countries by USD volume, with deal counts and volume share."""
     ws = wb.create_sheet("3. Geography")
     title_bar(ws, 1, 4, "TOP COUNTRIES BY ISSUANCE VOLUME")
-    geo = C.geographic(df, top_n=15).rename(columns={
+    busiest = A.country.loc[A.country["Deals"].idxmax()]
+    by_volume_rank = int(A.country.index.get_loc(busiest.name)) + 1
+    geo = A.countries(15).rename(columns={
         "Volume_USD_bn": "Volume (USD bn)", "Share_of_Volume_Pct": "Share of volume %"})
     last = write_df(ws, geo, start_row=3, number_formats={
         "Volume (USD bn)": "#,##0.00", "Share of volume %": "0.0"})
@@ -310,18 +323,19 @@ def sheet_geography(wb: Workbook, df: pd.DataFrame) -> None:
     ws.add_chart(bar, "F3")
 
     note(ws, last + 2, 4,
-         "Ranked by volume rather than deal count: China leads on deal count (68) but "
-         "ranks sixth by volume, because Chinese issuance in this dataset is many "
-         "small bank deals while European volume is concentrated in large sovereign "
-         "programmes. Volume is the more meaningful ranking for market size.")
+         f"Ranked by volume rather than deal count: {busiest['Country']} leads on deal "
+         f"count ({int(busiest['Deals'])}) but ranks {by_volume_rank}th by volume, "
+         f"because its issuance in this dataset is many small bank deals while "
+         f"European volume is concentrated in large sovereign programmes. Volume is "
+         f"the more meaningful ranking for market size.")
     widths(ws, {"A": 20, "B": 10, "C": 18, "D": 18})
 
 
-def sheet_sector(wb: Workbook, df: pd.DataFrame) -> None:
+def sheet_sector(wb: Workbook, A: Aggregates) -> None:
     """Issuance by canonical sector, after folding the fragmented source taxonomy."""
     ws = wb.create_sheet("4. Sector Breakdown")
     title_bar(ws, 1, 4, "ISSUANCE BY SECTOR (NORMALISED TAXONOMY)")
-    sec = C.sector(df).rename(columns={
+    sec = A.sector.rename(columns={
         "Volume_USD_bn": "Volume (USD bn)", "Share_of_Volume_Pct": "Share of volume %"})
     last = write_df(ws, sec, start_row=3, number_formats={
         "Volume (USD bn)": "#,##0.00", "Share of volume %": "0.0"})
@@ -345,13 +359,13 @@ def sheet_sector(wb: Workbook, df: pd.DataFrame) -> None:
     widths(ws, {"A": 30, "B": 10, "C": 18, "D": 18})
 
 
-def sheet_theme(wb: Workbook, df: pd.DataFrame) -> None:
+def sheet_theme(wb: Workbook, A: Aggregates) -> None:
     """Theme totals plus the Year x Theme mix on both deal count and volume."""
     ws = wb.create_sheet("5. Theme Evolution")
     title_bar(ws, 1, 6, "BOND THEME MIX")
 
     section(ws, 3, "THEME TOTALS")
-    totals = C.theme_totals(df).rename(columns={
+    totals = A.theme.rename(columns={
         "Volume_USD_bn": "Volume (USD bn)",
         "Share_of_Volume_Pct": "Share of volume %",
         "Share_of_Deals_Pct": "Share of deals %"})
@@ -361,11 +375,11 @@ def sheet_theme(wb: Workbook, df: pd.DataFrame) -> None:
 
     r = last + 2
     section(ws, r, "DEAL COUNT BY YEAR x THEME")
-    last = write_df(ws, C.theme_evolution(df, "deals"), start_row=r + 1)
+    last = write_df(ws, A.theme_deals, start_row=r + 1)
 
     r = last + 2
     section(ws, r, "USD VOLUME (BN) BY YEAR x THEME")
-    ev = C.theme_evolution(df, "volume")
+    ev = A.theme_volume
     last = write_df(ws, ev, start_row=r + 1,
                     number_formats={c: "#,##0.00" for c in ev.columns if c != "Year"})
 
@@ -376,7 +390,7 @@ def sheet_theme(wb: Workbook, df: pd.DataFrame) -> None:
     widths(ws, {"A": 18, "B": 12, "C": 16, "D": 18, "E": 16, "F": 16})
 
 
-def sheet_slb(wb: Workbook, df: pd.DataFrame) -> None:
+def sheet_slb(wb: Workbook, A: Aggregates) -> None:
     """SLB vs green issuance by year, SLB penetration, and the largest SLB issuers."""
     ws = wb.create_sheet("6. SLB Analysis")
     title_bar(ws, 1, 6, "SUSTAINABILITY-LINKED BONDS (SLB) — MARKET ANALYSIS")
@@ -385,7 +399,7 @@ def sheet_slb(wb: Workbook, df: pd.DataFrame) -> None:
         "same mechanism as the margin ratchet modelled in Project 2.")
     ).font = Font(italic=True, size=9, color=GREY)
 
-    slb = C.slb_vs_green(df).rename(columns={
+    slb = A.slb.rename(columns={
         "Green_USD_bn": "Green (USD bn)", "SLB_USD_bn": "SLB (USD bn)",
         "All_Themes_USD_bn": "All themes (USD bn)",
         "SLB_Share_of_Green_SLB_Pct": "SLB % of green+SLB",
@@ -406,8 +420,7 @@ def sheet_slb(wb: Workbook, df: pd.DataFrame) -> None:
 
     r = last + 2
     section(ws, r, "LARGEST SLB ISSUERS BY VOLUME")
-    top = C.top_issuers(df, theme="SLB", top_n=10).rename(
-        columns={"Volume_USD_bn": "Volume (USD bn)"})
+    top = A.top_slb.rename(columns={"Volume_USD_bn": "Volume (USD bn)"})
     last = write_df(ws, top, start_row=r + 1,
                     number_formats={"Volume (USD bn)": "#,##0.00"})
 
@@ -529,23 +542,24 @@ def sheet_greenium(wb: Workbook) -> None:
     widths(ws, {"A": 34, "B": 10, "C": 22, "D": 20, "E": 26, "F": 28})
 
 
-def sheet_clean_data(wb: Workbook, df: pd.DataFrame) -> None:
-    """The cleaned dataset the rest of the workbook is built from."""
-    ws = wb.create_sheet("8. Cleaned Data")
-    title_bar(ws, 1, len(df.columns), "CLEANED DATASET (post-normalisation)")
-    write_df(ws, df, start_row=3, number_formats={C.VOL: "#,##0.000000"})
-    ws.freeze_panes = "A4"
-    for i in range(1, len(df.columns) + 1):
-        ws.column_dimensions[get_column_letter(i)].width = 20
-
-
 # ── main ───────────────────────────────────────────────────────────────────
 
-def build(input_path: str, output_path: str, min_year: int = 2015) -> dict:
-    """Load, clean, aggregate and write the workbook. Returns the headline metrics."""
-    print(f"Loading {input_path} …")
-    df = C.load(input_path, min_year=min_year)
-    m = C.headline_metrics(df)
+def build(output_path: str, input_path: str | None = None,
+          agg_dir: str = DEFAULT_DIR, min_year: int = 2015) -> dict:
+    """
+    Write the workbook from the aggregates and return the headline metrics.
+
+    With ``input_path`` the tables are recomputed from the source extract;
+    without it they are read from the committed CSVs in ``agg_dir``.
+    """
+    if input_path and os.path.exists(input_path):
+        print(f"Aggregating {input_path} …")
+        A = Aggregates.from_raw(input_path, min_year=min_year)
+    else:
+        print(f"Reading committed aggregates from {agg_dir} …")
+        A = Aggregates.from_dir(agg_dir)
+
+    m = A.metrics
     print(f"  {m['total_deals']:,} deals · {m['year_min']}–{m['year_max']} · "
           f"${m['total_volume_usd_bn']:,.2f}bn · {m['countries']} countries · "
           f"{m['issuers']} issuers")
@@ -553,15 +567,14 @@ def build(input_path: str, output_path: str, min_year: int = 2015) -> dict:
     wb = Workbook()
     wb.remove(wb.active)
 
-    sheet_dashboard(wb, df, m)
-    sheet_data_quality(wb, input_path, df)
-    sheet_annual(wb, df)
-    sheet_geography(wb, df)
-    sheet_sector(wb, df)
-    sheet_theme(wb, df)
-    sheet_slb(wb, df)
+    sheet_dashboard(wb, A)
+    sheet_data_quality(wb, A)
+    sheet_annual(wb, A)
+    sheet_geography(wb, A)
+    sheet_sector(wb, A)
+    sheet_theme(wb, A)
+    sheet_slb(wb, A)
     sheet_greenium(wb)
-    sheet_clean_data(wb, df)
 
     wb.save(output_path)
     print(f"Model saved → {output_path} ({len(wb.sheetnames)} sheets)")
@@ -572,16 +585,22 @@ def main() -> None:
     """Parse arguments and build the model."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     parser = argparse.ArgumentParser(
-        description="Build the Green Bond Excel model from the CBI extract")
-    parser.add_argument("--input", default=os.path.join(here, "data", "cbi_newsmakers.csv"),
-                        help="Path to the CBI News Makers CSV")
+        description="Build the Green Bond Excel model",
+        epilog="With no --input the model is built from the derived tables in "
+               "data/aggregates/. The CBI extract is not redistributed here; supply "
+               "your own copy with --input to rebuild from records. See DATA.md.")
+    parser.add_argument("--input", default=None,
+                        help="Optional path to the CBI News Makers CSV. Omit to build "
+                             "from the committed aggregates.")
+    parser.add_argument("--aggregates", default=os.path.join(here, "data", "aggregates"),
+                        help="Directory of committed aggregate tables")
     parser.add_argument("--output",
                         default=os.path.join(here, "Green_Bond_Market_Analysis.xlsx"),
                         help="Output workbook path")
     parser.add_argument("--min-year", type=int, default=2015,
-                        help="Earliest issue year to include (default: 2015, all data)")
+                        help="Earliest issue year to include; only applies with --input")
     args = parser.parse_args()
-    build(args.input, args.output, args.min_year)
+    build(args.output, args.input, args.aggregates, args.min_year)
 
 
 if __name__ == "__main__":

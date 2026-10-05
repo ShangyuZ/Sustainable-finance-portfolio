@@ -34,6 +34,8 @@ jobs:
         run: |
           python -m py_compile \
             project1-green-bond-analysis/scripts/clean.py \
+            project1-green-bond-analysis/scripts/aggregates.py \
+            project1-green-bond-analysis/scripts/export_aggregates.py \
             project1-green-bond-analysis/scripts/process_data.py \
             project1-green-bond-analysis/scripts/greenium.py \
             project1-green-bond-analysis/scripts/build_brief.py \
@@ -47,6 +49,8 @@ jobs:
         run: |
           python -m pyflakes \
             project1-green-bond-analysis/scripts/clean.py \
+            project1-green-bond-analysis/scripts/aggregates.py \
+            project1-green-bond-analysis/scripts/export_aggregates.py \
             project1-green-bond-analysis/scripts/process_data.py \
             project1-green-bond-analysis/scripts/greenium.py \
             project1-green-bond-analysis/scripts/build_brief.py \
@@ -62,7 +66,10 @@ jobs:
 
       - name: Excel models rebuild from committed sources
         # Guards reproducibility: both workbooks in the repo must be regenerable
-        # from what is committed, with no manual steps.
+        # from what is committed, with no manual steps. Project 1 builds from the
+        # derived aggregates, because the record-level CBI extract they were
+        # computed from is not redistributable (see DATA.md) — so this is the
+        # same command anyone cloning the repository can run.
         run: |
           python project1-green-bond-analysis/scripts/process_data.py \
             --output /tmp/ci_green_bonds.xlsx
@@ -92,6 +99,21 @@ jobs:
             echo "FAIL: the template produced output instead of refusing"; exit 1
           fi
           echo "OK: template correctly refused"
+
+      - name: Aggregate exporter refuses to run without the source extract
+        # It must fail loudly rather than silently writing empty tables, which
+        # would zero out every published figure on the next regeneration.
+        run: |
+          if python project1-green-bond-analysis/scripts/export_aggregates.py \
+               --input /nonexistent/extract.csv 2>/dev/null; then
+            echo "FAIL: the exporter produced output without an extract"; exit 1
+          fi
+          echo "OK: exporter correctly refused"
+
+      - name: No third-party records are redistributed
+        # The licensing guard, as its own step so a failure names the cause
+        # directly rather than appearing as one test among hundreds.
+        run: python -m pytest tests/test_data_licensing.py -v --tb=short
 
       - name: No proprietary data references anywhere
         # The portfolio claims no Bloomberg/Refinitiv data is used. Text search

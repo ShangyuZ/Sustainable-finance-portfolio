@@ -133,15 +133,15 @@ def normalise_issuer(raw: pd.Series) -> pd.Series:
     return key.map(canonical)
 
 
-def load(path: str, min_year: int = 2015) -> pd.DataFrame:
+def normalise_frame(df: pd.DataFrame, min_year: int = 2015) -> pd.DataFrame:
     """
-    Load and clean the CBI News Makers extract.
+    Apply every cleaning rule to an already-loaded frame.
 
-    Coerces ``Year`` and volume to numeric, normalises the sector, country and
-    issuer columns, and restricts to ``min_year`` onwards. Returns a frame with
-    the canonical columns used by every aggregation below.
+    Split out from :func:`load` so the same rules can be applied to a frame that
+    did not come from a file — which is how the tests exercise them without the
+    source extract, since that extract cannot be redistributed (see DATA.md).
     """
-    df = pd.read_csv(path)
+    df = df.copy()
     df.columns = df.columns.str.strip()
 
     df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
@@ -156,6 +156,17 @@ def load(path: str, min_year: int = 2015) -> pd.DataFrame:
     df = df[df["Year"] >= min_year]
     df["Year"] = df["Year"].astype(int)
     return df.reset_index(drop=True)
+
+
+def load(path: str, min_year: int = 2015) -> pd.DataFrame:
+    """
+    Load and clean the CBI News Makers extract.
+
+    Coerces ``Year`` and volume to numeric, normalises the sector, country and
+    issuer columns, and restricts to ``min_year`` onwards. Returns a frame with
+    the canonical columns used by every aggregation below.
+    """
+    return normalise_frame(pd.read_csv(path), min_year=min_year)
 
 
 # ── aggregations ─────────────────────────────────────────────────────────────

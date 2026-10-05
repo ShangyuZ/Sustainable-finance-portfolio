@@ -131,11 +131,15 @@ BLANKET_LICENCE_CLAIM = re.compile(
 
 def _quoted_spans(text: str) -> list[tuple[int, int]]:
     """
-    Character ranges inside double quotes, straight or curly.
+    Character ranges the document is quoting rather than asserting.
 
-    Operates on the whole document rather than per line, because a quotation in
-    prose is routinely wrapped across a line break — and a per-line parser
-    mis-pairs the quote characters when it is.
+    Two forms count. Double quotes, straight or curly — paired across the whole
+    document rather than per line, because a quotation in prose is routinely
+    wrapped across a line break and a per-line parser mis-pairs the quote
+    characters when it is. And Markdown blockquote lines, because reproducing a
+    retired sentence as a block quotation is the other natural way to cite it,
+    and a guard that only understood inline quotes would stop the repository
+    quoting its own withdrawn claims at length.
     """
     spans, open_at = [], None
     for i, ch in enumerate(text):
@@ -145,6 +149,12 @@ def _quoted_spans(text: str) -> list[tuple[int, int]]:
             else:
                 spans.append((open_at, i))
                 open_at = None
+
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        if line.lstrip().startswith(">"):
+            spans.append((offset, offset + len(line)))
+        offset += len(line)
     return spans
 
 
@@ -194,6 +204,17 @@ def test_the_guard_still_catches_a_real_assertion():
     """The guard must not be so permissive that it never fires."""
     assert _blanket_licence_assertions("All data is publicly available and openly licensed.")
     assert _blanket_licence_assertions("No proprietary or restricted data is used anywhere.")
+    # A block-quoted mention is allowed too: FINDINGS.md section 1 reproduces both
+    # retired sentences as block quotations before explaining what replaced them.
+    assert not _blanket_licence_assertions(
+        "The README said, and had said for months:\n\n"
+        "> All data is publicly available and openly licensed. No proprietary or\n"
+        "> restricted data is used anywhere.\n\n"
+        "Both halves were wrong.")
+    # But a blockquote must not launder an assertion on an adjacent line.
+    assert _blanket_licence_assertions(
+        "> quoting something else entirely\n"
+        "All data here is openly licensed.")
     # A quoted, retrospective mention is allowed — including across a line break,
     # which is how it actually appears in the README and FINDINGS.md.
     assert not _blanket_licence_assertions(

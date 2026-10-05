@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 import sys
 from pathlib import Path
 
@@ -19,21 +20,83 @@ sys.path.insert(0, str(PROJECT2 / "scripts"))
 sys.path.insert(0, str(PROJECT3))
 
 
-@pytest.fixture(scope="session")
-def cbi_csv() -> Path:
-    """Path to the committed CBI extract."""
-    path = PROJECT1 / "data" / "cbi_newsmakers.csv"
-    if not path.exists():
-        pytest.skip(f"source extract not present: {path}")
-    return path
+RAW_EXTRACT = PROJECT1 / "data" / "cbi_newsmakers.csv"
+AGG_DIR = PROJECT1 / "data" / "aggregates"
 
 
 @pytest.fixture(scope="session")
-def bonds(cbi_csv: Path) -> pd.DataFrame:
-    """The cleaned bond dataset, loaded once per session."""
+def raw_extract() -> Path | None:
+    """
+    The CBI extract, if whoever is running the tests has a licensed copy.
+
+    It is not committed — CBI's terms of use prohibit redistributing their
+    content — so this is ``None`` in CI and for anyone cloning the repository.
+    Only the handful of tests that genuinely need record-level data take it, and
+    they assert against the committed aggregates when it is absent rather than
+    skipping. See DATA.md.
+    """
+    return RAW_EXTRACT if RAW_EXTRACT.exists() else None
+
+
+@pytest.fixture(scope="session")
+def agg():
+    """
+    The committed aggregate tables — the published figures, as published.
+
+    Everything the workbook, the brief and the READMEs quote is computed from
+    these, so testing against them is testing the real artifacts rather than a
+    convenient stand-in.
+    """
+    from aggregates import Aggregates
+
+    return Aggregates.from_dir(str(AGG_DIR))
+
+
+@pytest.fixture(scope="session")
+def bonds() -> pd.DataFrame:
+    """
+    A record-level frame with the same structure and defects as the real extract.
+
+    The aggregation functions in ``clean.py`` need records to operate on, and the
+    real extract cannot be redistributed, so this reproduces its shape: ten
+    years, four themes, a long tail of countries, the sector taxonomy with all
+    its synonyms, the ``"0"`` sentinel, split country spellings and issuer case
+    variants. It is generated deterministically, and it is deliberately *not*
+    scaled to match the real totals — the figures are checked against the
+    committed aggregates by ``test_aggregates.py``, while this fixture checks
+    that the arithmetic and the normalisation behave correctly on realistic input.
+    """
     import clean
 
-    return clean.load(str(cbi_csv))
+    rng = random.Random(20261004)
+    sectors = list(clean.SECTOR_MAP) + ["0"]
+    countries = (["USA", "United States", "China", "China_HK", "Germany", "France",
+                  "UK", "United Kingdom", "Netherlands ", "Supernational", "Japan",
+                  "Canada", "Spain", "Italy", "Sweden", "Chile", "India"]
+                 + [f"Country{i}" for i in range(20)])
+    themes = ["Green"] * 12 + ["Sustainability"] * 4 + ["SLB"] * 3 + ["Social"]
+
+    rows = []
+    for year in range(2015, 2025):
+        # Deal count grows over the decade, as in the real market.
+        for _ in range(max(1, int(1.7 ** (year - 2014)))):
+            amount = rng.lognormvariate(19.5, 1.4)
+            rows.append({
+                "Issuer Name": rng.choice(
+                    ["Alpha Bank AG", "alpha bank ag", "Beta Energy SA",
+                     "Gamma Rail Plc", "Republic of Delta", "Epsilon Water NV",
+                     "Zeta Housing Oyj", "Eta Grid SpA"]),
+                "Theme": rng.choice(themes),
+                "Issue Date": f"{year}-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}",
+                "Amount Issued": amount,
+                "Currency": "USD",
+                "Amount (USD)": amount,
+                "Country": rng.choice(countries),
+                "Sector": rng.choice(sectors) if rng.random() > 0.02 else None,
+                "Year": year,
+                "Amount_USD_bn": amount / 1e9,
+            })
+    return clean.normalise_frame(pd.DataFrame(rows))
 
 
 @pytest.fixture
