@@ -124,8 +124,22 @@ def test_bundled_data_is_present():
 
 # ── claims about third-party rights ──────────────────────────────────────────
 
+# Matches the claim however it is phrased, not one sentence of it. The first
+# version of this guard pinned "openly licensed" and "freely licensed", and a
+# project README was asserting the same thing as "All data used here is freely
+# and publicly available" — which sailed straight through. Same failure as the
+# greenium disclaimer guard: a claim reworded is still the claim.
+#
+# The distinction the wording must preserve: *accessible* without payment is a
+# fact about access and is fine to assert. *Open*, *openly licensed* or *free to
+# use* is a claim about someone else's rights, and two of the publishers here
+# reserve theirs.
 BLANKET_LICENCE_CLAIM = re.compile(
-    r"all data[^.]{0,60}(openly licensed|freely licensed)"
+    r"(all|every)\s+(data|datasets?|sources?|inputs?)[^.]{0,70}"
+    r"(openly|freely|publicly)\s+(licensed|available|open|reusable|usable)"
+    r"|(all|every)\s+(data|datasets?|sources?|inputs?)[^.]{0,70}"
+    r"(open[- ]access|open licence|open license|public domain)"
+    r"|(fully|entirely|completely)\s+open\s+(data|datasets?|sources?)"
     r"|no proprietary or restricted data is used anywhere", re.I)
 
 
@@ -171,7 +185,11 @@ def _blanket_licence_assertions(text: str) -> list[str]:
     found = []
     for match in BLANKET_LICENCE_CLAIM.finditer(text):
         asserted = False
-        for phrase in ("openly licensed", "freely licensed", "used anywhere"):
+        for phrase in ("openly licensed", "freely licensed", "freely available",
+                       "publicly available", "openly available", "freely reusable",
+                       "freely usable", "open access", "open-access",
+                       "public domain", "open data", "open datasets",
+                       "open sources", "used anywhere"):
             start = match.start()
             i = lowered.find(phrase, start, match.end() + len(phrase))
             if i == -1:
@@ -204,6 +222,31 @@ def test_the_guard_still_catches_a_real_assertion():
     """The guard must not be so permissive that it never fires."""
     assert _blanket_licence_assertions("All data is publicly available and openly licensed.")
     assert _blanket_licence_assertions("No proprietary or restricted data is used anywhere.")
+    # Rewordings of the same claim. Each of these was either in the repository or
+    # one edit away from it, and the first version of this guard missed them all.
+    for reworded in (
+        "All data used here is freely and publicly available:",
+        "Every dataset here is freely available.",
+        "A live dashboard on fully open datasets.",
+        "All sources are open access.",
+        "All data is in the public domain.",
+    ):
+        assert _blanket_licence_assertions(reworded), f"guard missed: {reworded}"
+
+
+def test_the_guard_permits_a_claim_about_access_rather_than_rights():
+    """
+    Saying a source can be *reached* without paying is a fact, not a claim about
+    rights, and the repository needs to be able to say it — the whole point of
+    the greenium method is that the yields are published free of charge.
+    """
+    for allowed in (
+        "Every source here is publicly accessible without a paid subscription.",
+        "The issuer publishes these yields free of charge.",
+        "All of these publishers provide the data free of charge.",
+        "No paid-terminal data is used anywhere in the analysis.",
+    ):
+        assert not _blanket_licence_assertions(allowed), f"guard over-fired on: {allowed}"
     # A block-quoted mention is allowed too: FINDINGS.md section 1 reproduces both
     # retired sentences as block quotations before explaining what replaced them.
     assert not _blanket_licence_assertions(
