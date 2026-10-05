@@ -33,15 +33,29 @@ just invisibly.
   above 60 rows, 335 tests passing, largest blob in the entire history now this
   CHANGELOG at 36 KB. Pack size 800K -> 560K.
 
-### Still outstanding
+### Still outstanding — and the first description of it was wrong
 
-GitHub retains unreachable objects until it garbage-collects, so the old blobs
-remain fetchable over `raw.githubusercontent.com` to anyone supplying an old
-commit SHA — and those SHAs are listed on this repository's own merged
-pull-request pages, so they are discoverable rather than secret. A clone gets
-nothing; that is not the same as gone. Asking GitHub Support to garbage-collect
-the repository is the documented remedy and is the one step left. DATA.md
-carries this note until it is done.
+This entry originally said the old blobs were unreachable objects awaiting
+garbage collection. They are not, and the error mattered, because it implied the
+problem would expire by itself.
+
+The pre-rewrite commits remain **reachable**, pinned by nine permanent
+`refs/pull/N/head` refs that GitHub creates per pull request and retains for the
+life of the repository. Verified by fetching `refs/pull/7/head` and walking one
+commit back: both record files are there. So the data stays retrievable
+indefinitely, via a PR ref or a `raw.githubusercontent.com` URL built from a
+pre-rewrite SHA, and those SHAs are listed on this repository's own PR pages.
+
+No waiting resolves this. Only two things do: GitHub Support dereferencing the
+PR refs, or deleting the repository, which deletes its PR refs with it. GitHub's
+documented purge workflow targets *sensitive* data such as leaked credentials
+and states that non-sensitive data will not be removed, so a request on
+licensing grounds may be declined.
+
+Facts for a support request, recorded here so they are not re-derived:
+first changed commit `326d470c49bbd076980c217b01f37f13315b5682` ->
+`926dc49c7e8b682f3f8015be7835fc73af8e4865`; 9 affected pull requests
+(`refs/pull/1..9/head`); no LFS objects; 0 forks, 0 stars, 0 watchers.
 
 ### What this is the third instance of
 
