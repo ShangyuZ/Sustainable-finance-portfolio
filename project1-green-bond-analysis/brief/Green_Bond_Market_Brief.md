@@ -4,7 +4,7 @@
 
 **ShangyuZ** · BSc Statistics, Economics & Finance, UCL · October 2026
 
-*Data: Climate Bonds Initiative News Makers extract — 732 labelled issuances, 2015–2024, $650.04bn. All figures computed from the committed dataset; see Methodology.*
+*Data: Climate Bonds Initiative News Makers extract — 732 labelled issuances, 2015–2024, $650.04bn. Every figure here is computed from the aggregate tables published alongside this brief, not quoted by hand; see Methodology.*
 
 ---
 
@@ -177,13 +177,15 @@ Evidence that would change the conclusion: a full-market database showing corpor
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure regenerates from the committed CSV with one command, and the aggregations are covered by 269 unit tests.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and the aggregations are covered by 334 unit tests. Each figure quoted here is asserted against those tables in the test suite, so this document cannot drift from the data behind it.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
 The greenium estimate uses the Deutsche Finanzagentur's published daily price and yield series for each green Federal security and its conventional twin; the twin pairing is derived by matching coupon and maturity exactly, not asserted. `scripts/fetch_bund_yields.py` reproduces the download and `scripts/greenium.py` the estimate.
 
 Sources are public throughout: Climate Bonds Initiative for issuance, published academic papers for the comparative greenium evidence, and the Deutsche Finanzagentur for bond yields. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
+
+Public access is not the same as permission to republish, and two of these sources reserve their rights: CBI prohibits reproducing their content without written permission, and Finanzagentur marks its published data all rights reserved. Neither dataset is redistributed in the repository. What is published instead is this project's own derived output — the aggregate tables and the greenium estimator results — which is what every figure above is computed from and checked against. Both are regenerable from their publishers in one command by anyone with access. The repository's DATA.md records the terms and the trade-off.
 
 **Repository:** github.com/ShangyuZ/Sustainable-finance-portfolio
 

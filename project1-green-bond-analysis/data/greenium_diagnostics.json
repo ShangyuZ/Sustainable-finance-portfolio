@@ -1,0 +1,15 @@
+{
+  "date_max": "2026-10-01",
+  "date_min": "2020-09-07",
+  "hac_se_inflation_factor": 3.28,
+  "maturity_vs_greenium_corr": 0.11,
+  "n_pairs": 9,
+  "newey_west_lags": 10,
+  "pooled_hac_se_bps": 0.052,
+  "pooled_hac_t": -28.74,
+  "pooled_mean_bps": -1.5,
+  "pooled_obs": 8094,
+  "pooled_ordinary_se_bps": 0.0159,
+  "pooled_ordinary_t": -94.2,
+  "share_days_negative_pct": 99.8
+}

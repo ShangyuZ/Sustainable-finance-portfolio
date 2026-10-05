@@ -1,0 +1,14 @@
+{
+  "countries": 64,
+  "green_share_deals_pct": 66.9,
+  "green_share_volume_pct": 81.2,
+  "issuers": 180,
+  "n_years": 10,
+  "peak_volume_usd_bn": 184.53,
+  "peak_volume_year": 2023,
+  "total_deals": 732,
+  "total_volume_usd_bn": 650.04,
+  "unclassified_volume_usd_bn": 23.79,
+  "year_max": 2024,
+  "year_min": 2015
+}

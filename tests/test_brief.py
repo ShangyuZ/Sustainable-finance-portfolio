@@ -3,9 +3,15 @@ Tests for the investment brief.
 
 The brief is the artifact most likely to be read on its own, detached from the
 code that produced it — which makes it the one most dangerous to let drift. The
-figure tests below recompute each headline number from the committed dataset and
-assert the string actually appears in the brief, so a change in the data or the
-cleaning rules fails the build rather than quietly invalidating the document.
+figure tests below recompute each headline number from the committed aggregates
+and assert the string actually appears in the brief, so a change in the data or
+the cleaning rules fails the build rather than quietly invalidating the document.
+
+The figures come from the full-precision companion tables, not the 2dp
+presentation tables. Rounding an already-rounded number shifts it — 2022 volume
+is 140.3479, which is 140.3 to one decimal, but the 2dp value 140.35 rounds up
+to 140.4 — and three figures in the brief's first draft were wrong for exactly
+that reason.
 """
 
 from __future__ import annotations
@@ -13,8 +19,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-import clean as C
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT1 = ROOT / "project1-green-bond-analysis"
@@ -29,21 +33,21 @@ def brief_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def figures(request) -> dict:
-    """Headline figures recomputed from the committed dataset."""
-    csv = PROJECT1 / "data" / "cbi_newsmakers.csv"
-    if not csv.exists():
-        pytest.skip("source extract not present")
-    df = C.load(str(csv))
-    # Aggregate from RAW sums, not from the 2dp-rounded aggregation helpers.
-    # Rounding an already-rounded figure shifts it: 2022 volume is 140.3479,
-    # which is 140.3 to 1dp, but the 2dp value 140.35 rounds up to 140.4.
-    raw_year = df.groupby("Year").agg(deals=(C.VOL, "size"), volume=(C.VOL, "sum"))
-    raw_sector = df.groupby("Sector").agg(deals=(C.VOL, "size"), volume=(C.VOL, "sum"))
-    raw_theme = df.groupby("Theme").agg(deals=(C.VOL, "size"), volume=(C.VOL, "sum"))
-    return {"df": df, "total": float(df[C.VOL].sum()),
-            "year": raw_year, "sector": raw_sector, "theme": raw_theme,
-            "metrics": C.headline_metrics(df)}
+def figures(agg) -> dict:
+    """
+    Headline figures taken from the committed full-precision aggregates.
+
+    ``*_precise`` tables carry unrounded sums, so a figure the brief quotes to
+    one decimal is checked against the real value rather than a rounded one.
+    """
+    names = {"Deals": "deals", "Volume_USD_bn": "volume"}
+    return {
+        "total": agg.total_volume(),
+        "year": agg.annual_precise.rename(columns=names).set_index("Year"),
+        "sector": agg.sector_precise.rename(columns=names).set_index("Sector"),
+        "theme": agg.theme_precise.rename(columns=names).set_index("Theme"),
+        "metrics": agg.metrics,
+    }
 
 
 # ── the figures in the brief must match the data ──────────────────────────────

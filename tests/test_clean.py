@@ -233,7 +233,16 @@ def test_data_quality_report_counts_records_not_labels(dirty_csv):
     assert counts[issuer] == 1            # GoodLeap / Goodleap
 
 
-def test_data_quality_report_is_nonempty_for_real_data(cbi_csv, bonds):
-    dq = clean.data_quality_report(str(cbi_csv), bonds)
+def test_data_quality_report_is_nonempty_for_real_data(agg):
+    """
+    The published cleaning report must document real corrections, not be empty.
+
+    Checked against the committed table rather than recomputed: that table is
+    what ships in the workbook, and the source extract it was computed from is
+    not redistributable (see DATA.md).
+    """
+    dq = agg.quality
     assert len(dq) > 0
     assert (dq["Records affected"] >= 0).all()
+    assert (dq["Records affected"] > 0).any(), "a report with no corrections is not a report"
+    assert dq["Why it matters"].str.len().gt(20).all(), "every rule needs a stated reason"

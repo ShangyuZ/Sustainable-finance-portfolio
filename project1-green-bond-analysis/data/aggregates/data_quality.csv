@@ -1,0 +1,7 @@
+Cleaning rule,Records affected,Why it matters
+"Sector sentinel ""0"" -> Unclassified",64,"Source encodes undisclosed sector as the string ""0""; left as-is it appears as a sector named ""0"" in the breakdown."
+Sector missing (true NaN) -> Unclassified,1,Grouped with the sentinel rows so unclassified volume is explicit.
+Sector labels folded (34 raw -> 11 canonical),140,e.g. Financials/Financial/Finance/Banks/Commercial Bank all denote the same group; unfolded they split one sector across several rows.
+Country duplicate labels folded,42,"USA/United States, UK/United Kingdom, China_HK, Supernational/Supranational — split volume across rows and inflated the country count."
+Country whitespace stripped,1,"""Netherlands "" (trailing space) was aggregating separately from ""Netherlands""."
+Issuer name case variants folded,1,GoodLeap LLC / Goodleap LLC — one issuer counted twice.

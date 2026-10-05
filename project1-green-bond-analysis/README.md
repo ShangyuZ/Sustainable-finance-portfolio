@@ -29,8 +29,21 @@ smaller than the headline numbers suggest.
 - **Total volume:** $650.04bn
 - **Themes:** Green (490 deals), Sustainability (109), SLB (108), Social (25)
 
-The extract is committed at [`data/cbi_newsmakers.csv`](./data/cbi_newsmakers.csv)
-so the whole model rebuilds from source with one command.
+### What is committed, and what is not
+
+The record-level extract is **not** in this repository. Climate Bonds Initiative's
+terms of use prohibit reproducing or storing their content without prior written
+permission, which I do not have, so redistributing their records here was not mine
+to do — see [DATA.md](../DATA.md) for the terms and the full reasoning.
+
+What is committed instead is the derived output: the aggregate tables in
+[`data/aggregates/`](./data/aggregates/). The whole model still rebuilds with one
+command, every figure quoted below is computed from those tables, and
+`tests/test_aggregates.py` checks each one — so nothing here is unverifiable. What
+is lost is rebuilding from records inside this repository: that needs your own
+licensed copy of the extract, and `scripts/export_aggregates.py --input <copy>`
+regenerates every table from it. The tests then assert the regenerated tables match
+the committed ones exactly, so the substitution is checked rather than asserted.
 
 ### Scope notes
 
@@ -67,10 +80,16 @@ Two caveats matter for reading any figure below:
 
 ## Methodology
 
-Data is cleaned and aggregated in Python (pandas), then written to a nine-sheet
+Data is cleaned and aggregated in Python (pandas), then written to an eight-sheet
 Excel model with openpyxl. Every figure in the workbook is computed at build time
 — nothing is hardcoded — so the model regenerates cleanly when the dataset is
 extended.
+
+`clean.py` holds the record-level cleaning and aggregation; `aggregates.py` wraps
+its output in one container that can be built either from records or from the
+committed tables. The workbook reads only that container, so both paths produce an
+identical file — which is what makes the committed tables usable in place of the
+extract rather than merely convenient.
 
 ### Data cleaning
 
@@ -104,12 +123,16 @@ pip install -r ../requirements.txt
 python scripts/process_data.py
 ```
 
-Rebuilds `Green_Bond_Market_Analysis.xlsx` from `data/cbi_newsmakers.csv`.
-Options: `--input`, `--output`, `--min-year`.
+Rebuilds `Green_Bond_Market_Analysis.xlsx` from the committed aggregates in
+`data/aggregates/`. With your own licensed copy of the extract, pass
+`--input <path>` to recompute the tables from records first; both paths produce the
+same workbook. Other options: `--output`, `--aggregates`, `--min-year`.
 
 ```bash
+python scripts/export_aggregates.py --input <your copy of the extract>
+                                # regenerate the aggregate tables from records
 python scripts/build_brief.py   # regenerate the investment brief PDF
-pytest ../tests/                # 269 tests: cleaning, aggregation, model, brief, greenium
+pytest ../tests/                # 334 tests: cleaning, aggregation, model, brief, greenium
 ```
 
 ### The investment brief
@@ -121,22 +144,28 @@ is European, and the instrument with the strongest theoretical claim — the
 performance-linked SLB — is 14.8% of deals but 3.4% of volume.
 
 The markdown is the source of truth and the PDF is generated from it. Every
-headline figure in the brief is re-derived from the committed dataset and asserted
-in `tests/test_brief.py`, so the document cannot drift from the data.
+headline figure in the brief is checked against the committed aggregates in
+`tests/test_brief.py`, so the document cannot drift from the data. Those checks
+read the full-precision companion tables rather than the rounded presentation
+ones: three figures in the brief's first draft were wrong because a value already
+rounded to 2dp was then formatted to 1dp, which shifts it.
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `data/cbi_newsmakers.csv` | Source extract — 732 records, the input to everything |
+| `data/aggregates/` | Derived tables — what ships in place of the records (see DATA.md) |
 | `scripts/clean.py` | Loading, normalisation and aggregation (pure pandas, unit-tested) |
+| `scripts/aggregates.py` | One table set, built from records or from the committed CSVs |
+| `scripts/export_aggregates.py` | Regenerates the aggregate tables from a licensed extract |
 | `scripts/greenium.py` | Greenium estimator — twin-bond spreads with HAC-corrected inference |
-| `scripts/fetch_bund_yields.py` | Downloads the twin pairs and daily yields from the Finanzagentur |
-| `data/green_twin_pairs.csv` | The nine twin pairs, coupon- and maturity-matched |
-| `data/bund_yields.csv` | 17,656 daily per-ISIN yields across 18 securities |
+| `scripts/fetch_bund_yields.py` | Fetches the twin pairs and daily yields from the Finanzagentur |
+| `data/greenium_summary.csv` | Per-pair and pooled estimates — the published result |
+| `data/greenium_by_year.csv` | The yearly series behind the compression finding |
+| `data/greenium_diagnostics.json` | HAC correction, maturity correlation, sample bounds |
 | `data/green_twin_pairs.example.csv` | Pair-registry template, for other issuers |
-| `scripts/process_data.py` | Builds the Excel model from the cleaned data |
-| `Green_Bond_Market_Analysis.xlsx` | Nine-sheet model (generated — do not edit by hand) |
+| `scripts/process_data.py` | Builds the Excel model from the aggregates |
+| `Green_Bond_Market_Analysis.xlsx` | Eight-sheet model (generated — do not edit by hand) |
 | `brief/Green_Bond_Market_Brief.md` | Investment brief — the editable source |
 | `brief/Green_Bond_Market_Brief.pdf` | The brief as a PDF (generated from the markdown) |
 | `scripts/build_brief.py` | Renders the brief to PDF |
@@ -152,8 +181,12 @@ in `tests/test_brief.py`, so the document cannot drift from the data.
 | 4. Sector Breakdown | Normalised sector taxonomy, with share |
 | 5. Theme Evolution | Theme totals plus Year × Theme on deals *and* volume |
 | 6. SLB Analysis | SLB vs green, two penetration measures, largest SLB issuers |
-| 7. Greenium Framework | Published evidence, sign convention, open-data method |
-| 8. Cleaned Data | The post-normalisation dataset the model is built from |
+| 7. Greenium Framework | Published evidence, sign convention, open-data method, result |
+
+There is no longer a "Cleaned Data" sheet. It held all 732 source records, which
+made the workbook a second copy of data that is not redistributable — and a copy
+no text search of the repository would have found. `tests/test_data_licensing.py`
+now fails the build on any sheet large enough to hold records, under any name.
 
 ## Greenium: sign convention
 
@@ -172,17 +205,20 @@ comparable series without the exact-twin structure.
 
 ### Running the estimator
 
-`scripts/greenium.py` implements it:
+`scripts/greenium.py` implements it. Neither input is committed — Finanzagentur
+reserves all rights in their published data (see [DATA.md](../DATA.md)) — so fetch
+them first:
 
 ```bash
+python scripts/fetch_bund_yields.py        # writes both files, free, from the issuer
 python scripts/greenium.py --pairs data/green_twin_pairs.csv \
                           --yields data/bund_yields.csv --strict
 ```
 
 - **`--pairs`** is a registry of green/conventional pairs. The committed file is
   a *template* (`green_twin_pairs.example.csv`) and the script refuses to run
-  while it still contains `FILL_ME` — populate it from the issuer's published
-  list so every ISIN traces to a primary source.
+  while it still contains `FILL_ME` — populate it, or let the fetcher populate it,
+  from the issuer's published list so every ISIN traces to a primary source.
 - **`--yields`** is a tidy `date,isin,yield_pct` CSV of daily yields, downloaded
   free from the relevant debt management office.
 - **`--strict`** refuses any pair that is not an exact twin. Without it,
@@ -213,16 +249,27 @@ The HAC correction is not cosmetic: on this data it triples the standard error,
 taking the t-statistic from −94 to −28.7. There is no maturity pattern
 (correlation 0.11), so this is a label effect, not a term-structure artefact.
 
-Reproduce it with:
+The estimator's output *is* committed, even though its input is not:
+`data/greenium_summary.csv` (per-pair and pooled), `data/greenium_by_year.csv`
+(the compression series) and `data/greenium_diagnostics.json` (the HAC correction,
+the maturity correlation, the sample bounds). Every figure in the table above is
+checked against those files by `tests/test_greenium_result.py`, so the write-ups
+cannot drift from the result.
+
+Reproduce the result from scratch with:
 
 ```bash
-python scripts/fetch_bund_yields.py        # downloads pairs + yields from the issuer
+python scripts/fetch_bund_yields.py        # fetches pairs + yields from the issuer
 python scripts/greenium.py --pairs data/green_twin_pairs.csv \
-                           --yields data/bund_yields.csv --strict
+                           --yields data/bund_yields.csv --strict \
+                           --out data/greenium_summary.csv \
+                           --out-by-year data/greenium_by_year.csv \
+                           --out-diagnostics data/greenium_diagnostics.json
 ```
 
-The estimate is pinned in `tests/test_greenium_result.py` so the figures quoted
-here and in the brief cannot drift from the committed data.
+With the fetched yields present, the test suite additionally asserts that
+re-estimating reproduces the committed output exactly — so the published numbers
+are verifiable from source, not just internally consistent.
 
 ## Skills Demonstrated
 
