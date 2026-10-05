@@ -116,14 +116,28 @@ is intact — and the working tree is byte-identical to before the rewrite. A fr
 clone now contains no record-level data at any commit; the largest blob in the
 whole history is this repository's own CHANGELOG.
 
-**One residual exposure, stated rather than glossed.** GitHub retains unreachable
-objects until it garbage-collects, so until that happens the old blobs are still
-fetchable over `raw.githubusercontent.com` by anyone who supplies an old commit
-SHA — and those SHAs are listed on this repository's own merged pull-request
-pages, so they are discoverable rather than secret. A clone gets nothing and the
-web interface shows nothing, but that is not the same as gone. The remedy is to
-ask GitHub Support to garbage-collect the repository, which is the documented
-procedure for exactly this case. This note stays until that is done.
+**One residual exposure, stated rather than glossed — and corrected.** The first
+version of this note said the old objects were unreachable and awaiting garbage
+collection. That was wrong, and the error mattered: it implied the problem would
+expire on its own. It will not.
+
+The pre-rewrite commits are still *reachable*, pinned by nine permanent
+`refs/pull/N/head` refs that GitHub creates for every pull request and keeps for
+the life of the repository. Verified: fetching `refs/pull/7/head` and walking one
+commit back yields both record files. So the data remains retrievable
+indefinitely by anyone who fetches a PR ref or constructs a
+`raw.githubusercontent.com` URL from a pre-rewrite SHA — and those SHAs are
+listed on this repository's own pull-request pages, so they are discoverable
+rather than secret.
+
+A fresh clone gets nothing, and the web interface shows nothing. That is not the
+same as gone, and no amount of waiting changes it. Only two things actually do:
+GitHub Support dereferencing those PR refs, or deleting the repository, which
+takes its PR refs with it. GitHub's documented purge workflow is written for
+*sensitive* data such as leaked credentials, and states that non-sensitive data
+will not be removed, so a request on licensing grounds may well be declined.
+This note stays until the exposure is actually closed, and says so plainly
+rather than implying a fix is pending.
 
 ## How this is kept true
 
