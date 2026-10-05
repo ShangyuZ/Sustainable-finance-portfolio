@@ -121,9 +121,11 @@ structure only pays for itself above **20.5% utilisation**.
 
 **▶ Live: [shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)**
 
-A live dashboard on fully open datasets: EU carbon price history, energy
-transition trends by country, a country climate scorecard, and a portfolio
-carbon intensity (WACI) calculator.
+A live dashboard on Our World in Data's CC BY 4.0 energy and CO₂ datasets,
+fetched at runtime: energy transition trends by country, a country climate
+scorecard, and a portfolio carbon intensity (WACI) calculator — plus EU carbon
+price history from a bundled series that is indicative rather than a reference
+(see [DATA.md](./DATA.md)).
 
 → [View project](./project3-climate-dashboard/)
 
