@@ -14,7 +14,7 @@ that only shows the finished surface tells you nothing about whether the person
 can be trusted with the parts you can't see.
 
 Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 269 tests). The fixes are in
+suite (`pytest tests/` — 334 tests). The fixes are in
 [PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
 
 ---
@@ -91,13 +91,64 @@ make. I had written the sentence once and then trusted it for months. The
 version of me that wrote "removed throughout" in the changelog genuinely
 believed it.
 
-**And it happened again, in the same README.** The sentence immediately after the
-Bloomberg claim made a second absolute assertion, this time about *third-party*
-rights rather than my own sourcing, and nobody had verified it either. Caught before publication, and replaced with a
-per-source table in [DATA.md](./DATA.md) that marks three datasets as unresolved.
-The lesson evidently needed applying twice: the first instance was a claim about
-my own sources, the second about other people's rights, which is the more
-expensive one to get wrong.
+**And it happened again, in the same README — and this time it cost me
+something.** The sentence immediately after the Bloomberg claim made a second
+absolute assertion, this time about *third-party* rights rather than my own
+sourcing:
+
+> All data is publicly available and openly licensed. No proprietary or
+> restricted data is used anywhere.
+
+Nobody had verified it either. So I went and read the terms, which is what I
+should have done before writing the sentence. Two of them said no:
+
+- **Climate Bonds Initiative:** *"Reproduction, use, storage, or transmission of
+  any content and / or materials available on this website, in any form, is
+  prohibited other than with the prior written permission of Climate Bonds
+  Initiative."*
+- **Deutsche Finanzagentur:** *"Copyright: Bundesrepublik Deutschland –
+  Finanzagentur GmbH, Frankfurt/Main, Germany. All rights reserved."*
+
+I had been redistributing 732 records from the first and 17,656 yield
+observations from the second. Not maliciously — I had assumed that public access
+meant permission to republish, which is simply not what it means.
+
+**What I changed, and what it cost.** Both datasets are out. In their place the
+repository commits my own derived output: the aggregate tables for Project 1, and
+the greenium estimator's per-pair, yearly and diagnostic results. Every figure I
+publish anywhere is still checkable against a committed file, and
+`tests/test_aggregates.py` checks each one. What I gave up is the line I had been
+proudest of — "rebuilds end to end from the committed CSV" — because rebuilding
+*from records* now needs your own licensed copy of the extract. That was the right
+trade, and it is worth being precise about why: the old reproducibility was only
+possible because it redistributed data I had no right to. It was never mine to
+offer.
+
+**The part I nearly got wrong twice.** My first instinct was to delete the CSV.
+That would have achieved nothing. The same 732 records also sat inside
+`Green_Bond_Market_Analysis.xlsx`, on a sheet called "8. Cleaned Data" — and that
+is in fact how they first entered the repository, in the original March 2026
+commit, *inside the workbook*. Deleting the CSV would have left the repository
+still shipping the data, in the one place a text search cannot see. Exactly the §1
+blind spot, a second time, on a second subject.
+
+So the guard is structural rather than name-based.
+`tests/test_data_licensing.py` fails the build if any committed CSV is large
+enough to be a record-level dataset, or if any workbook sheet is — by size, under
+any name, with an allowlist that has to state its reasons. A guard that checked
+filenames would have passed the repository that still shipped the data.
+
+**What I take from it.** Three versions of the same lesson, which is presumably
+why it took three goes:
+
+1. A claim you have no test for is a claim you should not make *(my own sources)*.
+2. The same, for claims about other people's rights — and that one you cannot
+   test by inspecting your own repository. You have to go and read what the
+   publisher actually says.
+3. When the answer is no, the data comes out, even when it costs you the thing
+   you were proudest of. The alternative is a portfolio whose central argument is
+   that claims you cannot defend should not be made, built on one I could not
+   defend.
 
 ---
 
