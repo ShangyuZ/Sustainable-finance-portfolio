@@ -102,6 +102,29 @@ response to stated terms. What it needs is a citation, not deletion — and unti
 has one, the honest label is the one above. If a source is identified that does
 prohibit redistribution, it goes the same way as the other two.
 
+## Git history
+
+Removing the files from the current tree was not sufficient on its own, for the
+same reason that deleting the CSV without the workbook sheet was not: the data
+remained in git history, and a plain `git clone` of this public repository handed
+over all 18,389 rows to anyone who ran `git show` against an old commit.
+
+History has therefore been rewritten (`git filter-repo`, stripping the three
+record blobs and the three record-bearing workbook versions). All 32 commits and
+their messages are preserved — the audit trail this repository is largely about
+is intact — and the working tree is byte-identical to before the rewrite. A fresh
+clone now contains no record-level data at any commit; the largest blob in the
+whole history is this repository's own CHANGELOG.
+
+**One residual exposure, stated rather than glossed.** GitHub retains unreachable
+objects until it garbage-collects, so until that happens the old blobs are still
+fetchable over `raw.githubusercontent.com` by anyone who supplies an old commit
+SHA — and those SHAs are listed on this repository's own merged pull-request
+pages, so they are discoverable rather than secret. A clone gets nothing and the
+web interface shows nothing, but that is not the same as gone. The remedy is to
+ask GitHub Support to garbage-collect the repository, which is the documented
+procedure for exactly this case. This note stays until that is done.
+
 ## How this is kept true
 
 `tests/test_data_licensing.py` enforces the position rather than trusting this
@@ -121,3 +144,8 @@ you cannot test should not be made.
 
 The corollary, learned the hard way: when you do check and the answer is no, the
 data comes out — even when it costs you the reproducibility you were proud of.
+
+And the corollary to *that*: "removed" means removed from everywhere it is
+actually served, not from the place you happened to look. Three times now the
+answer to "is it gone?" has been no in a place I had not checked — the workbook
+sheet, then the reworded claim, then git history.

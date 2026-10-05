@@ -4,6 +4,55 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.11.1] — 2026-10-05 — Licensed data purged from git history
+
+v0.11.0 removed the records from the working tree. A final pre-publication check
+found that insufficient: a plain `git clone` of this public repository still
+handed over every row.
+
+```
+git show <old-sha>:.../data/cbi_newsmakers.csv   ->    733 lines
+git show <old-sha>:.../data/bund_yields.csv      -> 17,657 lines
+```
+
+Plus three historical versions of `Green_Bond_Market_Analysis.xlsx` — two with
+the 735-row `8. Cleaned Data` sheet, and the original six-sheet model with a
+733-row `Raw Data` sheet. The repository was still distributing both datasets,
+just invisibly.
+
+### Changed
+
+- **History rewritten** with `git filter-repo --strip-blobs-with-ids`, removing
+  six blobs: the three record CSVs and the three record-bearing workbook
+  versions. The current workbook blob is clean and was kept.
+- `--prune-empty never`, so **all 32 commits and their messages survive**. The
+  commit-subject fingerprint is unchanged (`0424d9fb7d675d8f` before and after)
+  and `HEAD`'s tree hash is identical (`25096446…`) — history was rewritten,
+  content was not touched. Commit SHAs changed, as they must.
+- Verified from a fresh clone: no record CSV at any commit, no workbook blob
+  above 60 rows, 335 tests passing, largest blob in the entire history now this
+  CHANGELOG at 36 KB. Pack size 800K -> 560K.
+
+### Still outstanding
+
+GitHub retains unreachable objects until it garbage-collects, so the old blobs
+remain fetchable over `raw.githubusercontent.com` to anyone supplying an old
+commit SHA — and those SHAs are listed on this repository's own merged
+pull-request pages, so they are discoverable rather than secret. A clone gets
+nothing; that is not the same as gone. Asking GitHub Support to garbage-collect
+the repository is the documented remedy and is the one step left. DATA.md
+carries this note until it is done.
+
+### What this is the third instance of
+
+FINDINGS.md §1 is about claims made without a test. The pattern underneath it
+turned out to be narrower and more specific: three times the answer to "is it
+gone?" was no, in a place not checked — the workbook sheet, the reworded
+licensing claim, and now git history. Each time the current, visible surface
+looked correct.
+
+---
+
 ## [v0.11.0] — 2026-10-05 — Third-party records removed; aggregates published instead
 
 v0.10.0 marked two datasets' terms as unverified and said resolving them meant
