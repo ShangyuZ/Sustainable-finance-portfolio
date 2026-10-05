@@ -14,3 +14,11 @@ outputs/
 
 # Fetched HTML cache (regenerable via scripts/fetch_bund_yields.py)
 .fetch_cache/
+
+# Third-party source data — licensed to whoever downloaded it, not redistributable.
+# These are the inputs, not the analysis: the derived aggregates in
+# project1-green-bond-analysis/data/aggregates/ are committed instead, so every
+# published figure stays reproducible. See DATA.md.
+project1-green-bond-analysis/data/cbi_newsmakers.csv
+project1-green-bond-analysis/data/bund_yields.csv
+project1-green-bond-analysis/data/green_twin_pairs.csv

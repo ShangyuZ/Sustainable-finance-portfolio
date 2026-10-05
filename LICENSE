@@ -25,10 +25,22 @@ SOFTWARE.
 SCOPE OF THIS LICENCE
 
 This licence covers the original work in this repository: the Python source,
-the build scripts, the tests, and the written analysis (READMEs, FINDINGS.md,
-the investment brief and the structuring memo).
+the build scripts, the tests, the written analysis (READMEs, FINDINGS.md, the
+investment brief and the structuring memo), and the derived statistics computed
+by this project — the aggregate tables in
+project1-green-bond-analysis/data/aggregates/ and the greenium estimator output
+in project1-green-bond-analysis/data/.
 
-It does NOT cover the third-party datasets redistributed here, which remain
-subject to their own terms. See DATA.md for the provenance and licence status
-of each dataset, including one whose redistribution terms have not been
-verified.
+It does NOT cover the third-party datasets those statistics were computed from,
+which remain subject to their own terms and are deliberately not redistributed
+here. The Climate Bonds Initiative extract and the Deutsche Finanzagentur yield
+series are both all-rights-reserved and have been removed from this repository;
+each is regenerable from its publisher by anyone who may access it.
+
+One file is retained whose provenance is unresolved rather than permitted:
+project3-climate-dashboard/data/eua_prices.csv, which names no source and over
+which no rightsholder asserts terms. It is labelled indicative, not a reference
+series.
+
+See DATA.md for the provenance, terms and verification status of every dataset,
+and for what was removed and why.

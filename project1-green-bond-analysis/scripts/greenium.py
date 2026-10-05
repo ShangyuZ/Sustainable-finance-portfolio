@@ -44,6 +44,7 @@ download and ``--help`` documents the inputs.
 from __future__ import annotations
 
 import argparse
+import json
 import math
 from dataclasses import dataclass
 
@@ -342,6 +343,71 @@ def estimate_by_pair(spreads: pd.DataFrame) -> pd.DataFrame:
     } for r in results])
 
 
+def estimate_by_year(spreads: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pooled estimate per calendar year.
+
+    The trend is the more interesting result than the level: a mean taken over
+    the whole sample hides the compression from the 2021 peak, which is the part
+    that bears on whether the label carries a funding benefit today.
+    """
+    if spreads.empty:
+        return pd.DataFrame()
+
+    rows = []
+    for year, g in spreads.groupby(spreads["date"].dt.year, sort=True):
+        r = estimate(g["greenium_bps"], label=str(year))
+        rows.append({
+            "Year": int(year),
+            "Obs": r.n_obs,
+            "Mean (bps)": round(r.mean_bps, 2),
+            "Median (bps)": round(r.median_bps, 2),
+            "Std (bps)": round(r.std_bps, 2),
+            "HAC SE": round(r.hac_se_bps, 3),
+            "t-stat": round(r.t_stat, 2) if not math.isnan(r.t_stat) else None,
+            "Pairs": int(g["pair_id"].nunique()),
+        })
+    return pd.DataFrame(rows)
+
+
+def diagnostics(spreads: pd.DataFrame, pairs: pd.DataFrame) -> dict:
+    """
+    The numbers that qualify the headline estimate rather than state it.
+
+    Two matter most. The HAC/ordinary standard-error ratio shows how much the
+    autocorrelation correction costs in apparent precision — without it the
+    t-statistic is inflated roughly threefold. The maturity correlation tests
+    whether the spread is a label effect or a term-structure artefact: near zero
+    means the greenium does not scale with tenor.
+    """
+    pooled = estimate(spreads["greenium_bps"], "POOLED")
+    series = spreads["greenium_bps"]
+    ordinary_se = float(series.std(ddof=1) / math.sqrt(len(series)))
+
+    per_pair = spreads.groupby("pair_id")["greenium_bps"].mean()
+    tenor = pairs.set_index("pair_id")["green_maturity"]
+    years_out = (tenor - spreads["date"].max()).dt.days / 365.25
+    common = per_pair.index.intersection(years_out.index)
+    maturity_corr = (float(per_pair.loc[common].corr(years_out.loc[common]))
+                     if len(common) > 2 else float("nan"))
+
+    return {
+        "pooled_mean_bps": round(pooled.mean_bps, 2),
+        "pooled_obs": pooled.n_obs,
+        "pooled_hac_se_bps": round(pooled.hac_se_bps, 3),
+        "pooled_hac_t": round(pooled.t_stat, 2),
+        "pooled_ordinary_se_bps": round(ordinary_se, 4),
+        "pooled_ordinary_t": round(pooled.mean_bps / ordinary_se, 1),
+        "hac_se_inflation_factor": round(pooled.hac_se_bps / ordinary_se, 2),
+        "newey_west_lags": newey_west_lags(len(series)),
+        "share_days_negative_pct": round(pooled.share_negative * 100, 1),
+        "maturity_vs_greenium_corr": round(maturity_corr, 2),
+        "n_pairs": int(spreads["pair_id"].nunique()),
+        "date_min": f"{spreads['date'].min():%Y-%m-%d}",
+        "date_max": f"{spreads['date'].max():%Y-%m-%d}",
+    }
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -360,7 +426,10 @@ def main() -> None:
                         help="CSV of green/conventional twin pairs")
     parser.add_argument("--yields", required=True,
                         help="Tidy CSV of daily yields: date,isin,yield_pct")
-    parser.add_argument("--out", help="Optional path to write the summary CSV")
+    parser.add_argument("--out", help="Optional path to write the per-pair summary CSV")
+    parser.add_argument("--out-by-year", help="Optional path to write the yearly CSV")
+    parser.add_argument("--out-diagnostics",
+                        help="Optional path to write the diagnostics JSON")
     parser.add_argument("--strict", action="store_true",
                         help="Refuse any pair that is not an exact twin "
                              "(coupon and maturity must match on both legs)")
@@ -397,6 +466,16 @@ def main() -> None:
     if args.out:
         summary.to_csv(args.out, index=False)
         print(f"\nSummary written to {args.out}")
+
+    if args.out_by_year:
+        by_year = estimate_by_year(spreads)
+        by_year.to_csv(args.out_by_year, index=False)
+        print(f"Yearly series written to {args.out_by_year}")
+
+    if args.out_diagnostics:
+        with open(args.out_diagnostics, "w", encoding="utf-8") as fh:
+            json.dump(diagnostics(spreads, pairs), fh, indent=2, sort_keys=True)
+        print(f"Diagnostics written to {args.out_diagnostics}")
 
 
 if __name__ == "__main__":

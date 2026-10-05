@@ -54,12 +54,25 @@ the results. The analysis and its conclusions are mine to defend.
 
 **Data provenance.** This README used to claim that all data here is "openly
 licensed" and that "no proprietary or restricted data is used anywhere". That was
-an absolute statement about third-party rights which I had not verified, so it has
-been replaced with a per-source table in **[DATA.md](./DATA.md)** — including three
-datasets whose terms are *not* established. Two things remain true and are
-enforced: no paid-terminal data is used anywhere in the analysis, and CI fails the
-build if a vendor reference reappears, including inside the `.xlsx` files where a
-plain text search would not find it.
+an absolute statement about third-party rights which I had not verified. When I
+went and read the terms, two of them said no: Climate Bonds Initiative prohibits
+reproducing their content without written permission, and Deutsche Finanzagentur
+reserves all rights in theirs. I had been redistributing both.
+
+Both are now out of the repository. What stands in their place is my own derived
+output — the aggregate tables for Project 1 and the greenium estimator results —
+so every figure quoted anywhere here is still checkable against a committed file,
+while the records themselves stay with their publishers. The cost is real and
+worth naming: rebuilding Project 1 *from source records* now needs your own
+licensed copy of the extract. **[DATA.md](./DATA.md)** has the terms, what was
+removed, and what it cost.
+
+Two things are enforced rather than claimed: no paid-terminal data is used
+anywhere in the analysis, and CI fails the build if a vendor reference reappears
+or if anything record-shaped is committed again — the latter checked by file and
+sheet size rather than by filename, because the first time round the records were
+hiding inside an `.xlsx` where no text search of the repository would have found
+them.
 
 [![CI](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ShangyuZ/Sustainable-finance-portfolio/actions/workflows/ci.yml)
 
@@ -78,7 +91,9 @@ and dollars, geographic and sector breakdown, the rise of sustainability-linked
 bonds, and a **measured greenium of −1.50bps** from Germany's green "twin" Bunds
 across 8,094 paired daily observations.
 
-Rebuilds end to end from the committed CSV with one command.
+Rebuilds end to end with one command from the committed aggregates. The
+underlying records are not redistributable, so what ships is the derived
+statistics — and the tests check every published figure against them.
 
 → [View project](./project1-green-bond-analysis/)
 
@@ -118,7 +133,7 @@ carbon intensity (WACI) calculator.
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 269 tests
+pytest tests/                                            # 334 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -130,9 +145,13 @@ cd project3-climate-dashboard && streamlit run app.py          # launch the dash
 
 ```
 project1-green-bond-analysis/
-  data/cbi_newsmakers.csv      source extract (732 records)
+  data/aggregates/             derived tables — the source records are not
+                               redistributable, so these ship instead (DATA.md)
+  data/greenium_*.csv|json     greenium output: per-pair, by year, diagnostics
   scripts/clean.py             loading, normalisation, aggregation — pure, tested
-  scripts/process_data.py      builds the nine-sheet Excel model
+  scripts/aggregates.py        one table set, built from records or from the CSVs
+  scripts/export_aggregates.py regenerates the tables from a licensed extract
+  scripts/process_data.py      builds the eight-sheet Excel model
 project2-sll-structuring/
   scripts/sll.py               facility economics — ratchet, utilisation, break-even
   scripts/build_model.py       builds the six-sheet formula-driven Excel model
@@ -140,11 +159,11 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         269 tests across all three projects
+tests/                         334 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
-DATA.md                        per-source data provenance and licence status
-LICENSE                        MIT, covering the code and written analysis only
-.github/workflows/ci.yml       lint, tests, model rebuilds, proprietary-data guard
+DATA.md                        per-source provenance, terms, and what was removed
+LICENSE                        MIT, covering the code, analysis and derived stats
+.github/workflows/ci.yml       lint, tests, model rebuilds, data-licensing guards
 ```
 
 The split between the calculation modules (`clean.py`, `sll.py`, `transforms.py`)
@@ -159,17 +178,22 @@ spreadsheets cannot drift apart.
 
 ## Data Sources
 
-Per-source terms, with the unverified ones marked — full detail in
-[DATA.md](./DATA.md):
+Per-source terms, and what of each is actually in this repository — full detail
+in [DATA.md](./DATA.md):
 
-| Dataset | Source | Licence |
-|---------|--------|---------|
-| Green bond issuance | Climate Bonds Initiative, "News Makers" | ❌ **terms not verified** |
-| Energy & electricity mix by country | Our World in Data — [energy dataset](https://github.com/owid/energy-data) | CC BY 4.0 |
-| CO₂ emissions by country | Our World in Data — [CO2 dataset](https://github.com/owid/co2-data) | CC BY 4.0 |
-| EU ETS carbon prices | "Compiled from public sources" (bundled) | ❌ uncited, **indicative only** |
-| Sovereign green bond yields | Deutsche Finanzagentur | ⚠️ public-sector info, unverified |
-| Academic greenium evidence | Published papers (cited) | Academic |
+| Dataset | In this repository | Terms |
+|---------|--------------------|-------|
+| Green bond issuance | **Derived aggregates only** | Climate Bonds Initiative — all rights reserved; records not redistributed |
+| Sovereign green bond yields | **Estimator output only** | Deutsche Finanzagentur — all rights reserved; observations not redistributed |
+| Energy & electricity mix by country | Fetched at runtime | Our World in Data — [energy dataset](https://github.com/owid/energy-data), CC BY 4.0 |
+| CO₂ emissions by country | Fetched at runtime | Our World in Data — [CO2 dataset](https://github.com/owid/co2-data), CC BY 4.0 |
+| EU ETS carbon prices | Bundled CSV | Uncited; **indicative only**, not a reference series |
+| Academic greenium evidence | Cited inline | Published papers — cited, not reproduced |
+
+Every conclusion here is reproducible from what is committed. Reproducing the two
+reserved datasets' *pipelines from source* takes one command each, against your
+own copy. That trade was deliberate: the arrangement it replaced was reproducible
+only because it redistributed data it had no right to.
 
 ---
 
