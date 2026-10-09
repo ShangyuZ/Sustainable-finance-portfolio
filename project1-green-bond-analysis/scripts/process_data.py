@@ -181,19 +181,22 @@ def sheet_dashboard(wb: Workbook, A: Aggregates) -> None:
          f"{themes.loc[themes['Theme'] == 'SLB', 'Share_of_Volume_Pct'].iat[0]:.0f}% of "
          f"volume — many small transactions. SLB share of annual volume reached "
          f"{slb_latest['SLB_Share_of_All_Pct']:.1f}% in {int(slb_latest['Year'])}, up from "
-         f"nil before 2021."),
+         f"almost nothing before 2021 (a single 2015 record, flagged on the Data "
+         f"Quality sheet as mislabelled, aside)."),
         ("Geographic concentration",
          f"The top three countries by volume ("
          f"{', '.join(geo['Country'].tolist())}) account for "
          f"{geo['Share_of_Volume_Pct'].sum():.0f}% of issuance, against "
          f"{m['countries']} countries in the dataset."),
-        ("Sovereign dominance",
-         f"Sovereign issuers are {sov['Share_of_Volume_Pct']:.0f}% of volume across "
-         f"{int(sov['Deals'])} deals — government programmes, not corporate issuance, "
-         f"are what scaled this market."),
+        ("Sovereign share (sample)",
+         f"Sovereign issuers are {sov['Share_of_Volume_Pct']:.0f}% of this sample's "
+         f"volume across {int(sov['Deals'])} deals. That reflects the selection of a "
+         f"newsflow extract, not the market: CBI's Sustainable Debt Market Summary "
+         f"Q3 2024 puts sovereigns at $630.5bn of $5.4tn cumulative aligned volume, "
+         f"about 11.6%."),
         ("Greenium",
          "No terminal data is used. Sheet 7 sets out the academic evidence and a "
-         "matched-pair framework built on freely published sovereign green/conventional "
+         "matched-pair framework built on issuer-published sovereign green/conventional "
          "'twin' bond yields — see that sheet for sources."),
     ]
     r = 9
@@ -327,7 +330,7 @@ def sheet_geography(wb: Workbook, A: Aggregates) -> None:
          f"count ({int(busiest['Deals'])}) but ranks {by_volume_rank}th by volume, "
          f"because its issuance in this dataset is many small bank deals while "
          f"European volume is concentrated in large sovereign programmes. Volume is "
-         f"the more meaningful ranking for market size.")
+         f"the more meaningful ranking for where capital moved in this sample.")
     widths(ws, {"A": 20, "B": 10, "C": 18, "D": 18})
 
 
@@ -457,14 +460,16 @@ def sheet_greenium(wb: Workbook) -> None:
     evidence = pd.DataFrame([
         ("Zerbib (2019)", 2019, "Global, 110 bonds", "−2", "Matched-pair + 2-step OLS",
          "J. Banking & Finance 98, 39–60"),
-        ("Löffler, Petreski & Stephan (2021)", 2021, "Global primary market", "−15 to −20",
-         "Coarsened exact matching", "Eurasian Econ Rev 11, 1–24"),
-        ("Caramichael & Rapp (2022)", 2022, "US corporates", "−8", "Matching + event study",
-         "Fed Intl Finance Disc. Paper 1346"),
-        ("Panizza et al. (2025)", 2025, "Sovereign bonds", "−5 to −8", "Synthetic control",
-         "CEPR Discussion Paper 20817"),
-        ("Banque de France (2025)", 2025, "Eurozone", "−2 to −13", "Propensity-score matching",
-         "Working Paper 1010"),
+        ("Löffler, Petreski & Stephan (2021)", 2021, "Global, primary and secondary",
+         "−15 to −20", "Propensity-score and coarsened exact matching",
+         "Eurasian Econ Rev 11, 1–24"),
+        ("Caramichael & Rapp (2022)", 2022, "Global corporates, at issuance", "−8",
+         "Fixed-effects panel regression", "Fed Intl Finance Disc. Paper 1346"),
+        ("Panizza, Shi, Weder di Mauro & Gulati (2025)", 2025,
+         "Sovereign and sovereign-backed, secondary", "≈ −2 advanced, ≈ −13 emerging",
+         "332 matched pairs", "CEPR Discussion Paper 20817"),
+        ("Pietsch & Salakhova (2025)", 2025, "Euro area, secondary", "≈ −3.7 average",
+         "k-prototypes matching", "Banque de France Working Paper 1010"),
     ], columns=["Study", "Year", "Market", "Greenium (bps)", "Method", "Reference"])
     last = write_df(ws, evidence, start_row=8)
     note(ws, last + 1, 6,
@@ -517,8 +522,10 @@ def sheet_greenium(wb: Workbook) -> None:
         "4. Control for liquidity using published bid-ask or turnover where "
         "available; twins still differ in outstanding size, which is the main "
         "remaining confound.",
-        "5. Test whether the mean difference is distinguishable from zero "
-        "(t-test on the daily series, Newey-West standard errors for autocorrelation).",
+        "5. Test whether the mean difference is distinguishable from zero. The daily "
+        "spread stays autocorrelated for months and pairs share dates, so use a "
+        "panel HAC (Driscoll-Kraay) standard error with a long bandwidth, and check "
+        "the sign against a t-test across pair means.",
         "6. Report the distribution, not just the mean — the literature's range "
         "(−2 to −20bps) is mostly heterogeneity across issuers and periods.",
     ]
@@ -533,8 +540,10 @@ def sheet_greenium(wb: Workbook) -> None:
     note(ws, r + 1, 6,
          "Measured on this framework: -1.50bps pooled across all nine German green "
          "twin pairs, 8,094 paired daily observations from September 2020 to "
-         "October 2026 (HAC standard error 0.052, t = -28.7), negative on 99.8% of "
-         "days, and compressed roughly 80% since 2021. German sovereign only. "
+         "October 2026 (Driscoll-Kraay standard error 0.330 with a 250-day bandwidth, "
+         "t = -4.5; an earlier 10-lag calculation on the stacked series overstated "
+         "this as t = -28.7), negative on 99.8% of days, and down from -4.71bps in "
+         "2021 to -0.76bps in 2025. German sovereign only. "
          "Reproduce with scripts/fetch_bund_yields.py then scripts/greenium.py; the "
          "full write-up is in brief/Green_Bond_Market_Brief.pdf. Every input is "
          "published free by the issuer — no paid data subscription is involved, "

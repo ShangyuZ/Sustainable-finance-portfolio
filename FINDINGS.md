@@ -14,12 +14,12 @@ that only shows the finished surface tells you nothing about whether the person
 can be trusted with the parts you can't see.
 
 Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 334 tests). The fixes are in
+suite (`pytest tests/` — 341 tests). The fixes are in
 [PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
 
 ---
 
-## The argument these projects add up to
+## What the projects show — and what they do not
 
 Labelled debt splits into two families:
 
@@ -28,30 +28,17 @@ Labelled debt splits into two families:
 - **Performance-linked** instruments (SLBs, SLLs): you promise an outcome, and
   your cost of capital moves with whether you hit it.
 
-The second family is the more intellectually satisfying one. It targets
-outcomes rather than inputs, and it doesn't care whether you can ring-fence a
-project. That is why it gets the attention.
+I looked at one concrete pricing question in each. On Germany's green twin Bunds
+the greenium is small (−1.50bps) and has narrowed since 2021 (§7). In a
+hypothetical sustainability-linked revolver, the ratchet only pays for its own
+verification above 20.5% utilisation (§6). In both cases the direct pricing
+incentive is small, which is consistent with the case for these structures
+resting largely on signalling, investor access and internal accountability.
 
-**My work suggests the performance-linked family has a pricing problem.** From
-the SLL model in Project 2:
-
-- The incentive is small. A ±7.5bps ratchet is inside the ordinary
-  spread volatility of a BBB– borrower, so it is unlikely to be the binding
-  factor in anyone's cost of capital.
-- It scales with drawdown, and it is therefore weakest exactly where revolving
-  facilities actually sit — undrawn, as liquidity backstops.
-- It is gated by a fixed cost. Verification does not get cheaper when you draw
-  less, so below **20.5% utilisation** the best possible ESG outcome does not
-  pay for proving you achieved it.
-
-And from the green bond data in Project 1: the use-of-proceeds market did scale
-— $650bn across 732 deals — but **82% of that volume is sovereign**. It scaled
-because governments issued, not because the private incentive worked.
-
-So the honest read is that neither family is primarily priced into existence.
-The case for sustainability-linked structures is signalling, governance and
-internal accountability. That is a real case. It is just not the cost-of-capital
-case the marketing makes.
+This section used to say more than that. It claimed that the use-of-proceeds
+market "scaled because governments issued", on the strength of an 82% sovereign
+share, and that the loan model showed the performance-linked incentive was too
+weak to scale. Both overreached, and §8 explains why.
 
 ---
 
@@ -353,35 +340,93 @@ observations, September 2020 to October 2026**.
 
 | | |
 |---|---|
-| Pooled greenium | **−1.50bps** |
-| HAC standard error | 0.052 |
-| t-statistic | −28.7 |
+| Pooled greenium (per observation) | **−1.50bps** |
+| Panel HAC standard error (Driscoll-Kraay, 250-day bandwidth) | 0.330 |
+| t-statistic | −4.5 |
 | Days with a negative spread | 99.8% |
 | Per-pair means | −0.65bps to −2.40bps, all negative |
 
-Two things I would not have predicted.
+The greenium narrowed from −4.71bps in 2021 to −0.76bps in 2025. The yearly
+means are descriptive: the number of pairs rises from one to nine over the
+period, so composition contributes to that trend.
 
-**The inference correction mattered more than I expected.** A daily yield spread
-is strongly autocorrelated, so I used Newey-West HAC standard errors. On this
-data the HAC standard error is **3.3× the ordinary one**: the naive t-statistic
-is −94, the honest one is −28.7. The conclusion survives either way because the
-sample is large, but on a shorter sample that factor of three is the difference
-between a finding and an artefact. I would not have known that without computing
-both.
-
-**The greenium has compressed by about 80% since 2021** — from −4.71bps to
-−0.76bps in 2025. That is a more interesting result than the level. At −4.7bps
-there was arguably a funding incentive to issue green; at under 1bp the advantage
-is inside the bid-offer spread on most days. It fits the thesis above rather than
-contradicting it: this market's growth is driven by sovereign funding strategy,
-not by price.
-
-It also shows no maturity pattern (correlation 0.11 between years-to-maturity and
-mean greenium), so it is a label effect rather than a term-structure artefact.
-
+The first version of this section reported t = −28.7 and presented the inference
+correction as its most instructive lesson. §8 explains why that figure was wrong.
 The estimate is pinned by tests (`tests/test_greenium_result.py`) so the figures
 in the brief and in this file cannot drift from the data, and
 `scripts/fetch_bund_yields.py` reproduces the whole download.
+
+## 8. What an outside review found in my corrected version
+
+A week after the audit, someone read the repository and the brief properly and
+sent a review. Every point in it held up when I checked it, and checking it
+turned up two more. The pattern is the uncomfortable part: several of these were
+in the sections I had written *about* being careful.
+
+**The precision of my greenium was wrong, in the section about getting precision
+right.** §7 originally reported t = −28.7 and said the Newey-West correction had
+"tripled" the standard error. Two things were wrong with it. The rule-of-thumb
+bandwidth gave 10 lags, but the spread is still correlated 0.86 with itself 60
+trading days later and 0.66 after 120 — ten lags discard most of that. And I had
+applied a single-series correction to nine bonds' histories stacked end to end,
+so pairs quoted on the same date counted as independent evidence. A panel HAC
+(Driscoll-Kraay) standard error handles both:
+
+| Specification | t-statistic |
+|---|---|
+| Ordinary standard error | −94.2 |
+| Stacked series, 10 lags (what I published) | −28.7 |
+| Driscoll-Kraay, 60 / 120 / 250 lags | −8.2 / −6.0 / −4.5 |
+| t-test across the nine pair means | −5.7 |
+
+The greenium survives every row; my claimed precision did not. The real
+correction from the ordinary standard error is about 21×, not 3.3×. I had also
+written that a 0.11 correlation with maturity made it "a label effect rather
+than a term-structure artefact". Nine pairs cannot show that — the green twins
+are smaller and less liquid, and the conventional twins can trade special in repo.
+`tests/test_greenium.py` now includes a case my old estimator fails: two
+identical pairs must carry no more information than one.
+
+**My headline market claim was a property of my sample.** I wrote that 82% of
+labelled-bond volume is sovereign and that governments built the market. The
+dataset is CBI's News Makers extract, which tracks notable deals — and I had said
+so in the brief's limitations, then drawn the market-wide conclusion anyway. CBI's
+own Q3 2024 summary records $5.4tn of aligned sustainable debt, of which $630.5bn,
+about 11.6%, is sovereign. My extract holds roughly 85% of that sovereign volume
+and about 2% of everything else. Every composition figure is now stated as a
+property of the sample, and the supply-forecasting recommendation built on it is
+gone.
+
+**I used a loan to explain a bond market.** The 20.5% break-even in §6 is correct
+for a revolving loan. I then used it to explain why sustainability-linked *bonds*
+stayed small. A bond is fully funded at issue and adjusts its coupon differently,
+so the drawdown mechanism does not exist there. It is now presented as a loan
+scenario only.
+
+**Four of the five studies in my literature table were wrong in some respect.** Panizza et
+al. had the wrong title and figure (their paper reports about −2bps for advanced
+and −13bps for emerging-market sovereigns, not −5 to −8bps, and uses matched
+pairs, not synthetic control). The Banque de France paper (Pietsch & Salakhova)
+had the wrong title, authors, method and range. Caramichael & Rapp study a global
+panel, not US corporates, and use fixed-effects regression — they explicitly
+reject matching. Löffler et al. cover secondary as well as primary markets and
+use propensity-score as well as coarsened exact matching. I had summarised papers
+from memory and secondary sources rather than reading them.
+
+**Smaller things.** "A fifth" of sustainability-bond volume was 31%; "nil before
+2021" contradicted a 2015 record I had deliberately kept and flagged; the README's
+first paragraph still said "freely licensed" two sections above the explanation
+of why that was false; the PDF renderer flattened numbered lists and leaked a
+backslash; and six tests failed under pandas 2.2, which `requirements.txt` claims
+to support, because `~` on a `None` from `.str.startswith` raises there.
+
+**What I take from it.** The audit fixed the errors I could see by reading my own
+work, and its write-up then repeated a lesson — "a claim you have no test for is a
+claim you should not make" — while making untested claims about inference, about
+the market and about other people's papers. Tests pin numbers to data. They do not
+check that the method behind the number is right, that the sample can carry the
+conclusion, or that a citation says what I said it does. Those need someone else
+to read the work.
 
 ## How I check things now
 
@@ -406,7 +451,10 @@ The audit changed my process more than it changed the output:
 
 Listed honestly rather than quietly dropped:
 
-- Streamlit Cloud deployment.
+- Reconciling Project 1's sample against a full issuance database, which is what
+  any market-wide statement would need.
+- The Zerbib (2019) row of the literature table is the one citation I have not
+  been able to re-check against the paper itself.
 
 ---
 

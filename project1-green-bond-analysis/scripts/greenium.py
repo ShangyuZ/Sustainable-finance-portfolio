@@ -31,14 +31,26 @@ Inference
 ---------
 A daily yield-spread series is strongly autocorrelated, so the ordinary standard
 error of its mean is badly understated and an ordinary t-test will find
-significance that is not there. :func:`hac_standard_error` applies a
-Newey-West/Bartlett HAC correction, which is the relevant adjustment and the main
-statistical content of this module.
+significance that is not there. Two corrections are needed, not one:
+
+* **Persistence.** On the twin-Bund data the cross-pair daily spread is still
+  correlated 0.66 with itself 120 trading days later. The Newey-West rule-of-thumb
+  bandwidth (10 lags at this sample size) truncates almost all of that, so the
+  long-run variance uses :data:`LONG_RUN_LAGS` — one trading year — instead.
+* **Pairs quoted on the same date.** The pooled sample stacks nine bonds' daily
+  histories. :func:`driscoll_kraay_se` sums residuals across pairs within each
+  date before applying the HAC weights, so same-date co-movement between pairs is
+  counted rather than treated as independent evidence.
+
+An earlier version applied a 10-lag correction to the stacked histories and
+reported t = -28.7; this module now gives t = -4.5 for the same mean. The sign
+survives every specification in ``greenium_diagnostics.json``; the precision of
+the old figure did not.
 
 The estimator is verified against synthetic series with a known true greenium.
-Applied to the committed German twin-Bund data it gives **-1.50bps** pooled
-(HAC SE 0.052, t = -28.7, n = 8,094); ``fetch_bund_yields.py`` reproduces the
-download and ``--help`` documents the inputs.
+Applied to the German twin-Bund data it gives **-1.50bps** pooled (robust SE
+0.330, t = -4.5, n = 8,094); ``fetch_bund_yields.py`` reproduces the download and
+``--help`` documents the inputs.
 """
 
 from __future__ import annotations
@@ -48,6 +60,7 @@ import json
 import math
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 # Marker used in the committed pair template. Rows carrying it are placeholders,
@@ -203,6 +216,31 @@ def build_spreads(pairs: pd.DataFrame, yields: pd.DataFrame) -> pd.DataFrame:
 
 # ── inference ────────────────────────────────────────────────────────────────
 
+# Bandwidth for the long-run variance, in trading days: about one trading year.
+# The rule-of-thumb bandwidth suits weakly dependent data; a daily yield spread is
+# not that (autocorrelation 0.86 at 60 days, 0.66 at 120 on the twin-Bund data),
+# and a short window reports most of that dependence as independent evidence.
+LONG_RUN_LAGS = 250
+
+
+def long_run_lags(n: int) -> int:
+    """
+    Bandwidth for a series of ``n`` observations: :data:`LONG_RUN_LAGS`, capped
+    at a quarter of the sample so a short series is not handed more lags than it
+    can estimate.
+    """
+    return int(min(LONG_RUN_LAGS, max(n // 4, 0)))
+
+
+def _bartlett_long_run(h, lags: int) -> float:
+    """``sum_t h_t^2 + 2 * sum_l w_l * sum_t h_t h_{t-l}`` with Bartlett weights."""
+    h = np.asarray(h, dtype="float64")
+    lags = max(0, min(lags, h.size - 1))
+    omega = float(h @ h)
+    for lag in range(1, lags + 1):
+        omega += 2.0 * (1.0 - lag / (lags + 1.0)) * float(h[lag:] @ h[:-lag])
+    return omega
+
 def newey_west_lags(n: int) -> int:
     """
     Automatic Bartlett bandwidth, ``floor(4 * (n/100) ** (2/9))``.
@@ -278,19 +316,67 @@ class GreeniumEstimate:
         return self.mean_bps < 0 and self.significant_5pct
 
 
-def estimate(spreads: pd.Series | list[float], label: str = "pooled") -> GreeniumEstimate:
+def driscoll_kraay_se(spreads: pd.DataFrame, lags: int | None = None) -> float:
     """
-    Summarise a greenium spread series with HAC-corrected inference.
+    Standard error of the pooled mean over a panel of pairs (Driscoll-Kraay).
 
-    ``t_stat`` uses the Newey-West standard error, not the iid one.
+    Residuals are summed across pairs within each date, then the Bartlett long-run
+    variance is taken over dates. That handles both autocorrelation within a pair
+    and correlation between pairs quoted on the same day — the second of which a
+    HAC correction applied to the stacked series cannot see, because same-date
+    observations of different pairs sit thousands of rows apart. ``lags`` defaults
+    to :func:`long_run_lags` of the number of dates.
+    """
+    x = spreads["greenium_bps"].astype("float64")
+    n = int(x.size)
+    if n < 2:
+        return float("nan")
+    resid = x - x.mean()
+    by_date = resid.groupby(spreads["date"]).sum().sort_index().to_numpy()
+    if lags is None:
+        lags = long_run_lags(by_date.size)
+    gamma0 = float(by_date @ by_date)
+    if gamma0 == 0.0:
+        return 0.0
+    omega = _bartlett_long_run(by_date, lags)
+    if omega <= 0.0:                      # small-sample pathology
+        omega = gamma0
+    return math.sqrt(omega) / n
+
+
+def estimate(spreads: pd.Series | list[float], label: str = "pooled",
+             lags: int | None = None) -> GreeniumEstimate:
+    """
+    Summarise a single pair's spread series with HAC-corrected inference.
+
+    ``t_stat`` uses the Newey-West standard error, not the iid one. For a series
+    stacked across several pairs use :func:`estimate_pooled` instead.
     """
     x = pd.Series(list(spreads), dtype="float64").dropna()
-    n = int(x.size)
-    if n == 0:
+    if x.empty:
         raise ValueError("no observations to estimate from")
+    return _summarise(x, label, hac_standard_error(x, lags=lags))
 
+
+def estimate_pooled(spreads: pd.DataFrame, label: str = "POOLED",
+                    lags: int | None = None) -> GreeniumEstimate:
+    """
+    Pooled estimate across pairs, with the Driscoll-Kraay standard error.
+
+    The mean weights every paired observation equally, so pairs with longer
+    histories count for more; the equal-weight alternatives are reported in
+    :func:`diagnostics`.
+    """
+    x = spreads["greenium_bps"].astype("float64").dropna()
+    if x.empty:
+        raise ValueError("no observations to estimate from")
+    return _summarise(x, label, driscoll_kraay_se(spreads.loc[x.index], lags))
+
+
+def _summarise(x: pd.Series, label: str, se: float) -> GreeniumEstimate:
+    """Assemble a :class:`GreeniumEstimate` from a series and its standard error."""
+    n = int(x.size)
     mean = float(x.mean())
-    se = hac_standard_error(x)
     return GreeniumEstimate(
         label=label,
         n_obs=n,
@@ -318,11 +404,12 @@ def estimate_by_pair(spreads: pd.DataFrame) -> pd.DataFrame:
 
     results, flags = [], {}
     for pair, g in spreads.groupby("pair_id", sort=True):
-        results.append(estimate(g["greenium_bps"], label=str(pair)))
+        results.append(estimate(g["greenium_bps"], label=str(pair),
+                                lags=long_run_lags(len(g))))
         exact = bool(g["twin_exact"].all()) if "twin_exact" in g else True
         gap = int(g["maturity_gap_days"].max()) if "maturity_gap_days" in g else 0
         flags[str(pair)] = "exact twin" if exact else f"+/-{gap}d maturity"
-    results.append(estimate(spreads["greenium_bps"], label="POOLED"))
+    results.append(estimate_pooled(spreads, label="POOLED"))
     all_exact = (bool(spreads["twin_exact"].all())
                  if "twin_exact" in spreads else True)
     flags["POOLED"] = "all exact twins" if all_exact else "mixed"
@@ -350,21 +437,23 @@ def estimate_by_year(spreads: pd.DataFrame) -> pd.DataFrame:
     The trend is the more interesting result than the level: a mean taken over
     the whole sample hides the compression from the 2021 peak, which is the part
     that bears on whether the label carries a funding benefit today.
+
+    Descriptive only: no standard error is reported. Within a single year the
+    spread's dependence runs for months, so a long-run variance cannot be
+    estimated reliably and a per-year t-statistic would overstate precision.
     """
     if spreads.empty:
         return pd.DataFrame()
 
     rows = []
     for year, g in spreads.groupby(spreads["date"].dt.year, sort=True):
-        r = estimate(g["greenium_bps"], label=str(year))
+        x = g["greenium_bps"].astype("float64")
         rows.append({
             "Year": int(year),
-            "Obs": r.n_obs,
-            "Mean (bps)": round(r.mean_bps, 2),
-            "Median (bps)": round(r.median_bps, 2),
-            "Std (bps)": round(r.std_bps, 2),
-            "HAC SE": round(r.hac_se_bps, 3),
-            "t-stat": round(r.t_stat, 2) if not math.isnan(r.t_stat) else None,
+            "Obs": int(x.size),
+            "Mean (bps)": round(float(x.mean()), 2),
+            "Median (bps)": round(float(x.median()), 2),
+            "Std (bps)": round(float(x.std(ddof=1)), 2) if x.size > 1 else 0.0,
             "Pairs": int(g["pair_id"].nunique()),
         })
     return pd.DataFrame(rows)
@@ -374,32 +463,59 @@ def diagnostics(spreads: pd.DataFrame, pairs: pd.DataFrame) -> dict:
     """
     The numbers that qualify the headline estimate rather than state it.
 
-    Two matter most. The HAC/ordinary standard-error ratio shows how much the
-    autocorrelation correction costs in apparent precision — without it the
-    t-statistic is inflated roughly threefold. The maturity correlation tests
-    whether the spread is a label effect or a term-structure artefact: near zero
-    means the greenium does not scale with tenor.
+    * **Inference sensitivity.** The pooled t-statistic at several bandwidths,
+      the superseded stacked 10-lag figure, and a t-test across the nine pair
+      means, which needs no bandwidth at all. The sign should survive all of them.
+    * **Weighting.** The pooled mean weights observations, so long-lived pairs
+      count for more. Equal weight per pair and per date are reported alongside.
+    * **Dependence.** Autocorrelation of the cross-pair daily average, which is
+      why the bandwidth is long, and the cross-pair correlation of daily changes.
+    * **Maturity.** Correlation of pair means with years to maturity. Nine points
+      cannot separate a label effect from liquidity or repo effects; it only rules
+      out a strong tenor pattern.
     """
-    pooled = estimate(spreads["greenium_bps"], "POOLED")
-    series = spreads["greenium_bps"]
-    ordinary_se = float(series.std(ddof=1) / math.sqrt(len(series)))
+    series = spreads["greenium_bps"].astype("float64")
+    n = int(series.size)
+    pooled = estimate_pooled(spreads, "POOLED")
+    ordinary_se = float(series.std(ddof=1) / math.sqrt(n))
+    stacked_se = hac_standard_error(series)            # the superseded method
 
     per_pair = spreads.groupby("pair_id")["greenium_bps"].mean()
+    pair_t = float(per_pair.mean() / (per_pair.std(ddof=1) / math.sqrt(len(per_pair))))
+    daily = spreads.groupby("date")["greenium_bps"].mean().sort_index()
+    wide = spreads.pivot_table(index="date", columns="pair_id", values="greenium_bps")
+    change_corr = wide.diff().corr().to_numpy()
+    upper = change_corr[np.triu_indices_from(change_corr, 1)]
+
     tenor = pairs.set_index("pair_id")["green_maturity"]
     years_out = (tenor - spreads["date"].max()).dt.days / 365.25
     common = per_pair.index.intersection(years_out.index)
     maturity_corr = (float(per_pair.loc[common].corr(years_out.loc[common]))
                      if len(common) > 2 else float("nan"))
 
+    sensitivity = {f"lags_{lags}": round(pooled.mean_bps / driscoll_kraay_se(spreads, lags), 1)
+                   for lags in (60, 120, LONG_RUN_LAGS)}
+
     return {
         "pooled_mean_bps": round(pooled.mean_bps, 2),
         "pooled_obs": pooled.n_obs,
-        "pooled_hac_se_bps": round(pooled.hac_se_bps, 3),
-        "pooled_hac_t": round(pooled.t_stat, 2),
+        "pooled_se_bps": round(pooled.hac_se_bps, 3),
+        "pooled_t": round(pooled.t_stat, 1),
+        "se_method": "Driscoll-Kraay (residuals summed across pairs by date, Bartlett weights)",
+        "bandwidth_lags": LONG_RUN_LAGS,
+        "pooled_t_by_bandwidth": sensitivity,
+        "pair_means_t": round(pair_t, 1),
+        "pair_means_df": int(len(per_pair) - 1),
+        "equal_weight_per_pair_mean_bps": round(float(per_pair.mean()), 2),
+        "equal_weight_per_date_mean_bps": round(float(daily.mean()), 2),
+        "superseded_stacked_nw_t": round(pooled.mean_bps / stacked_se, 1),
+        "superseded_stacked_nw_lags": newey_west_lags(n),
         "pooled_ordinary_se_bps": round(ordinary_se, 4),
         "pooled_ordinary_t": round(pooled.mean_bps / ordinary_se, 1),
-        "hac_se_inflation_factor": round(pooled.hac_se_bps / ordinary_se, 2),
-        "newey_west_lags": newey_west_lags(len(series)),
+        "se_inflation_vs_ordinary": round(pooled.hac_se_bps / ordinary_se, 1),
+        "daily_average_autocorr": {f"lag_{k}": round(float(daily.autocorr(k)), 2)
+                                   for k in (1, 20, 60, 120)},
+        "median_cross_pair_corr_of_daily_changes": round(float(np.nanmedian(upper)), 2),
         "share_days_negative_pct": round(pooled.share_negative * 100, 1),
         "maturity_vs_greenium_corr": round(maturity_corr, 2),
         "n_pairs": int(spreads["pair_id"].nunique()),
@@ -457,9 +573,9 @@ def main() -> None:
               f"twins; their spreads carry a maturity mismatch this estimator "
               f"does not control for.\n")
 
-    pooled = estimate(spreads["greenium_bps"], "POOLED")
+    pooled = estimate_pooled(spreads, "POOLED")
     print(f"\nPooled: {pooled.mean_bps:.2f}bps "
-          f"(HAC SE {pooled.hac_se_bps:.3f}, t = {pooled.t_stat:.2f}, "
+          f"(Driscoll-Kraay SE {pooled.hac_se_bps:.3f}, t = {pooled.t_stat:.2f}, "
           f"n = {pooled.n_obs})")
     print("Greenium at 5%:", "yes" if pooled.greenium_exists else "no")
 

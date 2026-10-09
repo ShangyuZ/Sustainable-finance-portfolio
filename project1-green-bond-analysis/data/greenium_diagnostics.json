@@ -1,15 +1,34 @@
 {
+  "bandwidth_lags": 250,
+  "daily_average_autocorr": {
+    "lag_1": 1.0,
+    "lag_120": 0.66,
+    "lag_20": 0.97,
+    "lag_60": 0.86
+  },
   "date_max": "2026-10-01",
   "date_min": "2020-09-07",
-  "hac_se_inflation_factor": 3.28,
+  "equal_weight_per_date_mean_bps": -2.04,
+  "equal_weight_per_pair_mean_bps": -1.29,
   "maturity_vs_greenium_corr": 0.11,
+  "median_cross_pair_corr_of_daily_changes": 0.08,
   "n_pairs": 9,
-  "newey_west_lags": 10,
-  "pooled_hac_se_bps": 0.052,
-  "pooled_hac_t": -28.74,
+  "pair_means_df": 8,
+  "pair_means_t": -5.7,
   "pooled_mean_bps": -1.5,
   "pooled_obs": 8094,
   "pooled_ordinary_se_bps": 0.0159,
   "pooled_ordinary_t": -94.2,
-  "share_days_negative_pct": 99.8
+  "pooled_se_bps": 0.33,
+  "pooled_t": -4.5,
+  "pooled_t_by_bandwidth": {
+    "lags_120": -6.0,
+    "lags_250": -4.5,
+    "lags_60": -8.2
+  },
+  "se_inflation_vs_ordinary": 20.8,
+  "se_method": "Driscoll-Kraay (residuals summed across pairs by date, Bartlett weights)",
+  "share_days_negative_pct": 99.8,
+  "superseded_stacked_nw_lags": 10,
+  "superseded_stacked_nw_t": -28.7
 }

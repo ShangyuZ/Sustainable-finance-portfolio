@@ -44,8 +44,10 @@ def sovereign_only(df: pd.DataFrame) -> pd.DataFrame:
     three-letter code removes all of them. An explicit exclusion list — the
     approach this replaced — misses dozens.
     """
-    iso = df["iso_code"]
-    return df[iso.notna() & (iso.str.len() == 3) & ~iso.str.startswith("OWID")]
+    # Missing codes are filled before the string tests: under pandas 2 an object
+    # column returns None from ``.str`` for them, and ``~None`` raises.
+    iso = df["iso_code"].fillna("").astype(str)
+    return df[(iso.str.len() == 3) & ~iso.str.startswith("OWID")]
 
 
 def latest_complete_year(df: pd.DataFrame, cols: list[str],

@@ -17,7 +17,6 @@ command, and the handful of tests that need record-level data then run too.
 from __future__ import annotations
 
 import json
-import math
 import re
 from pathlib import Path
 
@@ -174,27 +173,50 @@ def test_spread_is_negative_on_almost_every_day(pooled_row):
     assert pooled_row["% days negative"] > 95.0
 
 
-def test_hac_standard_error_exceeds_the_iid_one(diagnostics):
+def test_reported_precision_accounts_for_persistence_and_pooling(diagnostics):
     """
-    On this data the HAC correction roughly triples the standard error.
+    The published standard error must be the panel-robust one.
 
-    Reported in the brief as 3.3x. If this inverted, every figure in the write-up
-    would be overconfident — an uncorrected standard error on a strongly
-    autocorrelated daily series overstates precision.
+    The first version stacked nine bonds' histories and applied a 10-lag
+    Newey-West correction, reporting t = -28.7. That missed most of the spread's
+    persistence (still 0.66 autocorrelated at 120 trading days) and treated pairs
+    quoted on the same date as independent. If the headline t-statistic drifts
+    back towards the stacked figure, the method has regressed.
     """
-    assert diagnostics["pooled_hac_se_bps"] > diagnostics["pooled_ordinary_se_bps"] * 2.0
-    assert diagnostics["hac_se_inflation_factor"] == pytest.approx(3.3, abs=0.5)
-    assert abs(diagnostics["pooled_ordinary_t"]) > abs(diagnostics["pooled_hac_t"])
+    assert diagnostics["bandwidth_lags"] >= 120
+    assert "Driscoll-Kraay" in diagnostics["se_method"]
+    assert abs(diagnostics["pooled_t"]) < abs(diagnostics["superseded_stacked_nw_t"]) / 3
+    assert abs(diagnostics["superseded_stacked_nw_t"]) < abs(diagnostics["pooled_ordinary_t"])
+    assert diagnostics["daily_average_autocorr"]["lag_120"] > 0.5, (
+        "the long bandwidth is justified by long-lived dependence; if that has "
+        "gone, revisit the bandwidth rather than keep it by default")
 
 
-def test_hac_estimator_reproduces_the_published_se(spreads, diagnostics):
-    """With the yields present, recompute the HAC standard error end to end."""
+def test_sign_survives_every_inference_choice(diagnostics):
+    """
+    The claim the write-up makes is the sign, not the precision.
+
+    It must hold at every bandwidth reported and under the bandwidth-free t-test
+    across pair means.
+    """
+    for label, t in diagnostics["pooled_t_by_bandwidth"].items():
+        assert t < -1.96, f"greenium not significant at bandwidth {label}: t = {t}"
+    assert diagnostics["pair_means_t"] < -2.31   # 5% two-sided, 8 df
+    assert diagnostics["pair_means_df"] == PUBLISHED_N_PAIRS - 1
+
+
+def test_headline_depends_on_weighting_and_says_so(diagnostics):
+    """The alternative weightings are published, and all three are negative."""
+    for key in ("pooled_mean_bps", "equal_weight_per_pair_mean_bps",
+                "equal_weight_per_date_mean_bps"):
+        assert diagnostics[key] < 0
+
+
+def test_robust_estimator_reproduces_the_published_se(spreads, diagnostics):
+    """With the yields present, recompute the Driscoll-Kraay standard error end to end."""
     _require(spreads)
-    x = spreads["greenium_bps"]
-    iid = float(x.std(ddof=1) / math.sqrt(len(x)))
-    assert G.hac_standard_error(x) > iid * 2.0
-    assert G.hac_standard_error(x) == pytest.approx(
-        diagnostics["pooled_hac_se_bps"], abs=0.01)
+    assert G.driscoll_kraay_se(spreads, G.LONG_RUN_LAGS) == pytest.approx(
+        diagnostics["pooled_se_bps"], abs=0.01)
 
 
 def test_every_pair_shows_a_negative_mean(summary):
@@ -205,10 +227,11 @@ def test_every_pair_shows_a_negative_mean(summary):
     assert per_pair.max() <= -0.5     # and none is indistinguishable from zero
 
 
-def test_no_maturity_term_structure(diagnostics):
+def test_no_strong_maturity_pattern(diagnostics):
     """
-    The brief claims the greenium is a label effect, not a maturity artefact,
-    citing a correlation of 0.11 between years-to-maturity and mean greenium.
+    The brief reports a correlation of 0.11 between years-to-maturity and pair
+    means. Across nine pairs that only rules out a strong tenor pattern; it does
+    not establish a pure label effect, and the brief must not say it does.
     """
     assert abs(diagnostics["maturity_vs_greenium_corr"]) < 0.5
 
