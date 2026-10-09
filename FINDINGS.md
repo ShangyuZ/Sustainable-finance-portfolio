@@ -352,8 +352,8 @@ period, so composition contributes to that trend.
 
 The first version of this section reported t = −28.7 and presented the inference
 correction as its most instructive lesson. §8 explains why that figure was wrong.
-The estimate is pinned by tests (`tests/test_greenium_result.py`) so the figures
-in the brief and in this file cannot drift from the data, and
+The estimate is pinned by tests (`tests/test_greenium_result.py`), which check the
+figures in the brief and in this file against the computed output, and
 `scripts/fetch_bund_yields.py` reproduces the whole download.
 
 ## 8. What an outside review found in my corrected version
@@ -392,8 +392,8 @@ labelled-bond volume is sovereign and that governments built the market. The
 dataset is CBI's News Makers extract, which tracks notable deals — and I had said
 so in the brief's limitations, then drawn the market-wide conclusion anyway. CBI's
 own Q3 2024 summary records $5.4tn of aligned sustainable debt, of which $630.5bn,
-about 11.6%, is sovereign. My extract holds roughly 85% of that sovereign volume
-and about 2% of everything else. Every composition figure is now stated as a
+about 11.6%, is sovereign. The coverage differs, so that gap shows the sample is
+unrepresentative rather than measuring by how much. Every composition figure is now stated as a
 property of the sample, and the supply-forecasting recommendation built on it is
 gone.
 

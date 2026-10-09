@@ -71,8 +71,8 @@ Two caveats matter for reading any figure below:
 - **Sovereign issuers are 82% of the sample's volume** across 448 deals. That is
   a selection effect, not a market share: CBI's *Sustainable Debt Market Summary
   Q3 2024* puts sovereigns at $630.5bn of $5.4tn cumulative aligned volume, about
-  11.6%. This extract holds roughly 85% of that sovereign volume but about 2% of
-  everything else.
+  11.6%. The two sources have different coverage, so the comparison shows the
+  sample is not representative of the market, not by how much.
 - **Deal count and volume rank countries differently.** China leads on deal count
   (68) but is sixth by volume, because Chinese issuance here is many small bank
   deals while European volume sits in large sovereign programmes. Germany,
@@ -151,7 +151,8 @@ performance-linked SLB — is 14.8% of deals but 3.4% of volume.
 
 The markdown is the source of truth and the PDF is generated from it. Every
 headline figure in the brief is checked against the committed aggregates in
-`tests/test_brief.py`, so the document cannot drift from the data. Those checks
+`tests/test_brief.py`, which checks key calculations and consistency with the
+data; it does not validate interpretation or citations. Those checks
 read the full-precision companion tables rather than the rounded presentation
 ones: three figures in the brief's first draft were wrong because a value already
 rounded to 2dp was then formatted to 1dp, which shifts it.
@@ -269,8 +270,8 @@ The estimator's output *is* committed, even though its input is not:
 (the yearly means, descriptive only) and `data/greenium_diagnostics.json` (the
 inference sensitivity table, alternative weightings, autocorrelation, the maturity
 correlation, the sample bounds). Every figure in the table above is
-checked against those files by `tests/test_greenium_result.py`, so the write-ups
-cannot drift from the result.
+checked against those files by `tests/test_greenium_result.py`, which keeps the
+write-ups consistent with the computed result.
 
 Reproduce the result from scratch with:
 
