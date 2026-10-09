@@ -13,9 +13,18 @@ touches the *drawn* balance. Quoting the ratchet benefit at 100% drawdown — as
 the first version of this model did — overstates it in direct proportion to the
 undrawn share. The undrawn balance is not free either: it carries a commitment
 fee, conventionally a fixed percentage of the margin. Both effects are modelled
-here, because together they decide whether an SLL is economically rational at all
-for a given borrower: the KPI verification cost is fixed, while the ratchet
-benefit scales with utilisation.
+here, but they answer different questions:
+
+* **Total facility cost** — drawn interest plus the commitment fee — is what the
+  borrower pays for the revolver.
+* **The incremental economics of the sustainability feature** compare this
+  facility with an otherwise identical conventional one. The commitment fee is
+  charged on both, so it cancels; what remains is the drawn-margin adjustment and
+  the incremental assurance cost (:meth:`Facility.incremental_cost_vs_conventional_m`).
+
+The break-even utilisation is a *best-case annual pricing* break-even under the
+model's assumptions: every target met, the whole assurance cost incremental, only
+the drawn margin adjusted, and no other incremental costs.
 """
 
 from __future__ import annotations
@@ -72,8 +81,10 @@ class Facility:
     utilisation: float = 1.0                  # 0.0–1.0 of the facility drawn
     commitment_fee_pct_of_margin: float = 0.35
     ratchet: RatchetGrid = field(default_factory=RatchetGrid)
-    # Annual third-party verification / assurance cost, in £m. Fixed: it does not
-    # scale with how much of the facility is drawn.
+    # Incremental annual assurance cost of the SPT verification, in £m. Fixed: it
+    # does not scale with drawdown. Treated as wholly incremental, which is the
+    # conservative case — under the SLLP, data already verified in the borrower's
+    # annual reporting need not be verified again, which would lower it.
     verification_cost_m: float = 0.10
 
     def __post_init__(self) -> None:
@@ -117,9 +128,9 @@ class Facility:
         """
         Annual commitment fee on the undrawn balance, £m.
 
-        Not ratcheted here: the common structure links only the drawn margin.
-        Some SLLs also ratchet the commitment fee pro rata, which would increase
-        the benefit figures below by roughly the commitment-fee percentage.
+        Not ratcheted here: the modelled structure links only the drawn margin.
+        For the alternative, where the fee moves with the margin, see
+        :meth:`linked_commitment_fee_effect_m` — its size depends on utilisation.
         """
         return self.undrawn_m * self.commitment_fee_bps / BPS / 100.0
 
@@ -140,6 +151,31 @@ class Facility:
         delta_bps = self.margin_bps(spts_met) - no_adjust
         return self.drawn_m * delta_bps / BPS / 100.0
 
+    def linked_commitment_fee_effect_m(self, spts_met: int) -> float:
+        """
+        Annual change in the commitment fee if it were linked to the margin, £m.
+
+        Not part of the modelled structure. Under a fee set as a share of the
+        margin, the ratchet would move the fee by ``adjustment × fee share`` on the
+        *undrawn* balance, so the effect is largest when the facility is least
+        drawn: at 0% utilisation the drawn-margin ratchet is worth nothing while
+        this term is at its maximum. Negative is a saving.
+        """
+        delta_fee_bps = (self.ratchet.adjustment_bps(spts_met)
+                         * self.commitment_fee_pct_of_margin)
+        return self.undrawn_m * delta_fee_bps / BPS / 100.0
+
+    def incremental_cost_vs_conventional_m(self, spts_met: int) -> float:
+        """
+        Annual cost of this facility minus an otherwise identical conventional one, £m.
+
+        The commitment fee is charged on both and cancels, so the difference is
+        the drawn-margin adjustment plus the incremental assurance cost. Negative
+        means the sustainability-linked facility is cheaper. Excludes any other
+        incremental costs (legal, internal reporting, structuring fees).
+        """
+        return self.ratchet_benefit_m(spts_met) + self.verification_cost_m
+
     def max_annual_saving_m(self) -> float:
         """Saving if every SPT is met, as a positive number, £m."""
         return -self.ratchet_benefit_m(self.ratchet.n_kpis)
@@ -155,7 +191,11 @@ class Facility:
 
     def breakeven_utilisation(self) -> float | None:
         """
-        Utilisation at which the best-case saving covers the verification cost.
+        Best-case annual pricing break-even, as a utilisation.
+
+        The drawdown at which the saving with every SPT met covers the incremental
+        assurance cost, under the model's assumptions (see the module docstring).
+        It is not a forecast of where any borrower would operate.
 
         Returns ``None`` if the step is zero (no ratchet, so never breaks even).
         Can exceed 1.0, which means the facility never justifies itself on price
@@ -214,19 +254,32 @@ class Facility:
         return rows
 
 
-def carbon_glide_path(baseline: float, target: float, baseline_year: int,
+def linear_glide_path(baseline: float, target: float, baseline_year: int,
                       target_year: int) -> list[tuple[int, float]]:
     """
     Linear interim targets from ``baseline`` to ``target``, inclusive of both ends.
 
-    A linear path is the simplest defensible interpolation and matches how SLL
-    interim SPTs are usually set. Raises if the years are not ordered.
+    Used for all three KPIs. A linear path is the simplest interpolation; on it
+    each year moves by the same share of the *baseline*, so a 30% reduction over
+    four years is 7.5% of the baseline a year, not a constant annual rate (that
+    would be about 8.5% a year, compounded). Raises if the years are not ordered.
     """
     if target_year <= baseline_year:
         raise ValueError("target_year must be after baseline_year")
     n = target_year - baseline_year
     step = (target - baseline) / n
     return [(baseline_year + i, baseline + step * i) for i in range(n + 1)]
+
+
+# Kept for callers that predate the generalisation; carbon is one KPI among three.
+carbon_glide_path = linear_glide_path
+
+
+def compound_annual_rate(baseline: float, target: float, years: int) -> float:
+    """Constant annual rate of change taking ``baseline`` to ``target``."""
+    if years <= 0 or baseline <= 0 or target <= 0:
+        raise ValueError("years, baseline and target must be positive")
+    return (target / baseline) ** (1.0 / years) - 1.0
 
 
 def kpi_progress(baseline: float, current: float, target: float) -> float:

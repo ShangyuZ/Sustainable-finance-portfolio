@@ -4,6 +4,53 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.13.0] — 2026-10-09 — Second review: loan memo, dashboard sourcing, presentation
+
+Write-up in FINDINGS.md §9.
+
+### SLL model and memo
+- Recommendation made conditional: £192.5k a year net at the assumed 60%
+  utilisation, nothing below ~20.5%, under stated assumptions.
+- `sll.py`: `incremental_cost_vs_conventional_m` (commitment fee cancels against
+  an equivalent conventional revolver), `linked_commitment_fee_effect_m`
+  (utilisation-dependent; £170,625 at 0% drawn), `linear_glide_path` for all
+  KPIs, `compound_annual_rate`. Tests for each.
+- Memo and README: unweighted grid and revenue-intensity gaming stated as
+  limitations; carbon condition proposed, marked not modelled; targets labelled
+  illustrative with alignment not established; CCC Sixth Carbon Budget dated
+  December 2020; March 2025 SLLP revision acknowledged; break-even relabelled
+  "best-case annual pricing break-even" with its assumptions; unused or
+  unverifiable references removed.
+- Workbook: target years per KPI; glide paths for renewables and audit coverage;
+  linear vs compounded rate shown; SPT count marked as a scenario input;
+  incremental-assurance labelling. New formula checks.
+
+### Dashboard
+- Carbon calculator relabelled illustrative: sector intensities are assumed
+  inputs, no longer attributed to "MSCI / TCFD"; high/low-carbon thresholds
+  removed; names stated not to affect the result. DATA.md updated.
+
+### Green bond brief
+- 99.8% restated as pair-date observations; the cross-pair daily average is
+  negative on all 1,544 dates (new diagnostics: `n_dates`,
+  `share_dates_daily_average_negative_pct`, `daily_average_max_bps`; summary
+  column renamed `% observations negative`).
+- Pair-means t-test described as a cross-check, not independent confirmation.
+- Removed "most-quoted growth figure"; distinguished sample figures (computed)
+  from external figures (quoted); added that the greenium is a secondary-market
+  difference, not a measured funding saving on a new issue.
+
+### Fixes
+- PDF renderer draws subscript digits as real subscripts; CO₂ previously showed
+  a missing-glyph box in the memo. Renderer test added.
+
+### Presentation
+- Root README restructured around the financing question: question, work and
+  evidence, limitations, implementation, provenance; AI disclosure and the
+  corrections record kept, but after the substance.
+
+---
+
 ## [v0.12.0] — 2026-10-09 — Corrections from an outside review
 
 An outside review of v0.11.1 found that several published claims went further

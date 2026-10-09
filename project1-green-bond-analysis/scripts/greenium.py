@@ -425,7 +425,7 @@ def estimate_by_pair(spreads: pd.DataFrame) -> pd.DataFrame:
         "Max (bps)": round(r.max_bps, 2),
         "HAC SE": round(r.hac_se_bps, 3),
         "t-stat": round(r.t_stat, 2) if not math.isnan(r.t_stat) else None,
-        "% days negative": round(r.share_negative * 100, 1),
+        "% observations negative": round(r.share_negative * 100, 1),
         "Greenium at 5%": "yes" if r.greenium_exists else "no",
     } for r in results])
 
@@ -465,7 +465,8 @@ def diagnostics(spreads: pd.DataFrame, pairs: pd.DataFrame) -> dict:
 
     * **Inference sensitivity.** The pooled t-statistic at several bandwidths,
       the superseded stacked 10-lag figure, and a t-test across the nine pair
-      means, which needs no bandwidth at all. The sign should survive all of them.
+      means, which needs no bandwidth. The last is a cross-check, not independent
+      confirmation: the pairs trade in the same market and share common shocks.
     * **Weighting.** The pooled mean weights observations, so long-lived pairs
       count for more. Equal weight per pair and per date are reported alongside.
     * **Dependence.** Autocorrelation of the cross-pair daily average, which is
@@ -516,7 +517,10 @@ def diagnostics(spreads: pd.DataFrame, pairs: pd.DataFrame) -> dict:
         "daily_average_autocorr": {f"lag_{k}": round(float(daily.autocorr(k)), 2)
                                    for k in (1, 20, 60, 120)},
         "median_cross_pair_corr_of_daily_changes": round(float(np.nanmedian(upper)), 2),
-        "share_days_negative_pct": round(pooled.share_negative * 100, 1),
+        "share_observations_negative_pct": round(pooled.share_negative * 100, 1),
+        "n_dates": int(daily.size),
+        "share_dates_daily_average_negative_pct": round(float((daily < 0).mean()) * 100, 1),
+        "daily_average_max_bps": round(float(daily.max()), 2),
         "maturity_vs_greenium_corr": round(maturity_corr, 2),
         "n_pairs": int(spreads["pair_id"].nunique()),
         "date_min": f"{spreads['date'].min():%Y-%m-%d}",

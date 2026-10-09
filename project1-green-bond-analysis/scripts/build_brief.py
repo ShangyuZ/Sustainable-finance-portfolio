@@ -74,6 +74,9 @@ def inline(text: str) -> str:
     out = re.sub(r"\[(.+?)\]\((.+?)\)", r"\1", out)       # links: keep the label
     for char, mark in escaped.items():
         out = out.replace(mark, char)
+    # The built-in PDF fonts have no subscript-digit glyphs (CO₂ would render as
+    # a missing-glyph box), so draw them as real subscripts.
+    out = re.sub("[₀-₉]", lambda m: f"<sub>{ord(m.group()) - 0x2080}</sub>", out)
     return out
 
 

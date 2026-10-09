@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+import sll
 from sll import Facility, RatchetGrid, carbon_glide_path, kpi_progress
 
 
@@ -264,3 +265,55 @@ def test_kpi_progress_is_negative_when_moving_backwards():
 def test_kpi_progress_undefined_when_baseline_equals_target():
     with pytest.raises(ValueError):
         kpi_progress(310, 300, 310)
+
+
+# ── incremental economics ────────────────────────────────────────────────────
+
+def test_commitment_fee_cancels_against_a_conventional_facility():
+    """
+    The fee is charged on both alternatives, so it cannot appear in the
+    incremental comparison: changing it must leave the difference unchanged.
+    """
+    low = sll.Facility(utilisation=0.6, commitment_fee_pct_of_margin=0.30)
+    high = sll.Facility(utilisation=0.6, commitment_fee_pct_of_margin=0.40)
+    assert low.incremental_cost_vs_conventional_m(3) == pytest.approx(
+        high.incremental_cost_vs_conventional_m(3))
+
+
+def test_incremental_cost_at_sixty_percent_is_the_net_saving():
+    """At 60% drawn: −£292.5k margin + £100k assurance = −£192.5k."""
+    f = sll.Facility(utilisation=0.6)
+    assert f.incremental_cost_vs_conventional_m(3) == pytest.approx(-0.1925)
+    assert f.incremental_cost_vs_conventional_m(3) == pytest.approx(-f.net_benefit_m())
+
+
+def test_linked_commitment_fee_effect_depends_on_utilisation():
+    """
+    At 0% drawn a 35%-linked fee would save £170,625 when all SPTs are met; the
+    drawn-only ratchet saves nothing. The effect is not a fixed percentage uplift.
+    """
+    empty = sll.Facility(utilisation=0.0)
+    assert empty.linked_commitment_fee_effect_m(3) == pytest.approx(-0.170625)
+    assert empty.ratchet_benefit_m(3) == 0.0
+    assert sll.Facility(utilisation=1.0).linked_commitment_fee_effect_m(3) == 0.0
+
+
+# ── glide paths ──────────────────────────────────────────────────────────────
+
+def test_linear_path_moves_by_a_fixed_share_of_baseline():
+    """30% over four years is 7.5% of the baseline a year on the linear path."""
+    path = [v for _, v in sll.linear_glide_path(310, 217, 2024, 2028)]
+    steps = {round(b - a, 9) for a, b in zip(path, path[1:])}
+    assert steps == {round(-310 * 0.075, 9)}
+
+
+def test_compound_rate_differs_from_the_linear_share():
+    rate = sll.compound_annual_rate(310, 217, 4)
+    assert rate == pytest.approx(-0.0853, abs=5e-4)
+
+
+def test_supplier_audit_path_ends_in_2027():
+    path = sll.linear_glide_path(35, 80, 2024, 2027)
+    assert path[-1] == (2027, 80)
+    assert len(path) == 4
+

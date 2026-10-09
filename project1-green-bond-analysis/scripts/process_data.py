@@ -542,7 +542,7 @@ def sheet_greenium(wb: Workbook) -> None:
          "twin pairs, 8,094 paired daily observations from September 2020 to "
          "October 2026 (Driscoll-Kraay standard error 0.330 with a 250-day bandwidth, "
          "t = -4.5; an earlier 10-lag calculation on the stacked series overstated "
-         "this as t = -28.7), negative on 99.8% of days, and down from -4.71bps in "
+         "this as t = -28.7), negative on 99.8% of pair-date observations and on every date's cross-pair average, and down from -4.71bps in "
          "2021 to -0.76bps in 2025. German sovereign only. "
          "Reproduce with scripts/fetch_bund_yields.py then scripts/greenium.py; the "
          "full write-up is in brief/Green_Bond_Market_Brief.pdf. Every input is "

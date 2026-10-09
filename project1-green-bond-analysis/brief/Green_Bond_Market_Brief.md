@@ -4,7 +4,7 @@
 
 **ShangyuZ** · BSc Statistics, Economics & Finance, UCL · October 2026
 
-*Data: Climate Bonds Initiative News Makers extract — 732 labelled issuances, 2015–2024, $650.04bn. Every figure here is computed from the aggregate tables published alongside this brief, not quoted by hand; see Methodology.*
+*Data: Climate Bonds Initiative News Makers extract — 732 labelled issuances, 2015–2024, $650.04bn. Sample figures are computed from the aggregate tables published alongside this brief; external figures — CBI market totals and the literature estimates — are quoted from their sources. See Methodology.*
 
 ---
 
@@ -22,7 +22,7 @@ This is an exploratory analysis of a curated sample: the Climate Bonds Initiativ
 
 ## 1. Growth depends on what you count
 
-The most-quoted growth figure for this market measures the wrong thing.
+Growth in this sample looks very different depending on whether deals or dollars are counted.
 
 | Measure | 2018 | 2023 | Growth |
 |---|---|---|---|
@@ -75,7 +75,7 @@ Geographic concentration in the sample follows from the same selection. Europe i
 | Chile | 36 | 37.6 | 5.8% |
 | China | 68 | 33.1 | 5.1% |
 
-What the sample does show well is the sovereign segment itself: European programmes — the green Bund, the OAT verte, the green gilt — and a cluster of emerging-market sovereigns (Chile, Mexico, Indonesia, Hungary) that have used the format for budget funding.
+The sample's sovereign deals include European programmes — the green Bund, the OAT verte, the green gilt — and a cluster of emerging-market sovereigns (Chile, Mexico, Indonesia, Hungary) that have used the format for budget funding.
 
 ---
 
@@ -126,7 +126,8 @@ All nine green Federal securities outstanding were matched to their exact twins 
 | Panel HAC standard error (Driscoll-Kraay, 250-day bandwidth) | 0.330 |
 | t-statistic | −4.5 |
 | Paired observations | 8,094 across 9 twin pairs |
-| Days with a negative spread | 99.8% |
+| Pair-date observations with a negative spread | 99.8% |
+| Dates on which the cross-pair average is negative | 1,544 of 1,544 |
 | Range of per-pair means | −0.65bps to −2.40bps |
 
 The greenium is small and persistent, and its sign is robust: all nine pairs have a negative mean, and the result holds under every inference choice tested. The *size* of the headline depends on weighting — −1.50bps per observation, −1.29bps with each pair weighted equally, −2.04bps with each date weighted equally (early dates have fewer pairs and the wide 2021 spreads) — so it is quoted with its weighting stated.
@@ -138,7 +139,7 @@ The greenium is small and persistent, and its sign is robust: all nine pairs hav
 | Ordinary standard error (no correction) | −94.2 |
 | Stacked series, Newey-West, 10 lags (previously published) | −28.7 |
 | Driscoll-Kraay, 60 / 120 / 250 lags | −8.2 / −6.0 / −4.5 |
-| t-test across the nine pair means (8 df, no bandwidth needed) | −5.7 |
+| t-test across the nine pair means (8 df; a cross-check, not independent — the pairs share market shocks) | −5.7 |
 
 The 250-day figure is the one quoted. The conclusion that a greenium exists survives every row; the precision of the earlier figure did not.
 
@@ -170,6 +171,7 @@ The honest limitations of this analysis:
 - **2024 is partial**, so the recent trend and the 11.8% SLB share are provisional.
 - **Sector is undisclosed for 65 deals** ($23.8bn, 3.7% of volume), shown as Unclassified rather than dropped or allocated.
 - **Two source records are known to be wrong** and are flagged rather than silently corrected: one issuer is tagged to the wrong country, and one 2015 transaction is labelled SLB years before that market existed.
+- **It is a secondary-market yield difference, not a measured funding saving.** It shows how the market prices existing green twins relative to conventional ones; it does not directly measure what an issuer saves on a new issue, which depends on primary-market pricing.
 - **The greenium estimate is German sovereign only.** The twin structure removes the matching problem rather than modelling around it, but it does not generalise to corporate issuers, to other sovereigns, or to primary-market pricing, where the published estimates are several times larger. Its precision depends on the bandwidth chosen (§4); its sign does not.
 
 What would change the greenium finding: a bandwidth or resampling scheme under which the sign stops being robust, or evidence that liquidity or repo effects account for the spread.
@@ -178,7 +180,7 @@ What would change the greenium finding: a bandwidth or resampling scheme under w
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and tests check key calculations and the consistency of the quoted figures with those tables. They do not validate every interpretation or citation.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; the sample figures regenerate from the published aggregate tables with one command, and tests check key calculations and the consistency of the quoted figures with those tables. They do not validate every interpretation or citation.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
@@ -186,7 +188,7 @@ The greenium estimate uses the Deutsche Finanzagentur's published daily price an
 
 Sources are public throughout: Climate Bonds Initiative for issuance and for the market-wide comparison in §2, published academic papers for the comparative greenium evidence, and the Deutsche Finanzagentur for bond yields. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
 
-Public access is not the same as permission to republish, and two of these sources reserve their rights: CBI prohibits reproducing their content without written permission, and Finanzagentur marks its published data all rights reserved. Neither dataset is redistributed in the repository. What is published instead is this project's own derived output — the aggregate tables and the greenium estimator results — which is what every figure above is computed from and checked against. Both are regenerable from their publishers in one command by anyone with access. The repository's DATA.md records the terms and the trade-off.
+Public access is not the same as permission to republish, and two of these sources reserve their rights: CBI prohibits reproducing their content without written permission, and Finanzagentur marks its published data all rights reserved. Neither dataset is redistributed in the repository. What is published instead is this project's own derived output — the aggregate tables and the greenium estimator results — which the sample and greenium figures above are computed from. Both are regenerable from their publishers in one command by anyone with access. The repository's DATA.md records the terms and the trade-off.
 
 **Repository:** github.com/ShangyuZ/Sustainable-finance-portfolio
 

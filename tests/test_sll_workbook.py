@@ -198,3 +198,12 @@ def test_excel_formulas_match_python(built):
         col = chr(ord("A") + i)
         assert float(cell("2. SPT Calibration", f"{col}16")) == pytest.approx(
             value, abs=1e-9)
+
+    # Glide paths for the other two KPIs, and the compounded-rate comparison
+    for row, args in [(27, (18, 60, 2024, 2028)), (32, (35, 80, 2024, 2027))]:
+        for i, (_, value) in enumerate(sll.linear_glide_path(*args)):
+            col = chr(ord("A") + i)
+            assert float(cell("2. SPT Calibration", f"{col}{row}")) == pytest.approx(
+                value, abs=1e-9), f"glide path row {row}, column {col}"
+    assert float(cell("2. SPT Calibration", "B19")) == pytest.approx(
+        sll.compound_annual_rate(310, 217, 4), abs=1e-9)

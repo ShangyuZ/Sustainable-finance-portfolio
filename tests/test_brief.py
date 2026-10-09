@@ -166,3 +166,17 @@ def test_pdf_builds_and_is_paginated(tmp_path, brief_text):
     for leaked in ("**", "|---", "## "):
         assert leaked not in text, f"unrendered markdown in PDF: {leaked!r}"
     assert "Green Bond Market Brief" in text
+
+
+def test_renderer_handles_lists_escapes_and_subscripts():
+    """
+    Three rendering defects that reached the published PDFs: numbered lists ran
+    into one paragraph, an escaped asterisk leaked a backslash, and CO₂ drew a
+    missing-glyph box because the built-in fonts have no subscript digits.
+    """
+    import build_brief
+    assert build_brief.list_marker("1. First item") == "numbered"
+    assert build_brief.list_marker("- a bullet") == "bullet"
+    assert build_brief.list_marker("2024 was partial") is None
+    assert build_brief.inline(r"\*2024 is partial") == "*2024 is partial"
+    assert build_brief.inline("tCO₂e") == "tCO<sub>2</sub>e"

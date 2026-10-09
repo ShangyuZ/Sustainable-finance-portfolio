@@ -15,7 +15,7 @@ EU carbon price series that is indicative only (see [DATA.md](../DATA.md)).
 | 1 | **EU Carbon Price** | Bundled EUA weekly history — *indicative, uncited* (see [DATA.md](../DATA.md)) |
 | 2 | **Energy Transition** | OWID energy dataset (electricity mix) + OWID CO2 dataset |
 | 3 | **Country Climate Scorecard** | OWID energy + CO2 — ranked CO₂ per capita & renewables |
-| 4 | **Portfolio Carbon Calculator** | TCFD-aligned sector benchmarks (public) |
+| 4 | **Portfolio Carbon Calculator** | Illustrative — assumed sector intensities, not sourced figures |
 
 ## Quick Start
 
@@ -71,15 +71,21 @@ connection or a running Streamlit app. `app.py` keeps only I/O and layout.
 
 ## Methodology notes
 
-- **WACI** = Σ (portfolio weight × sector carbon intensity benchmark), the
-  TCFD-aligned definition. It is only comparable to a benchmark when weights
+- **WACI** = Σ (portfolio weight × sector carbon intensity), the metric the TCFD
+  recommends. It is only comparable to a benchmark when weights
   total 100%: at 90% the figure is scaled down by the shortfall, which reads as a
   lower-carbon portfolio when it is really an incomplete one. The app shows the
   rescaled figure when weights don't sum to 100.
 - **CO₂** is territorial (production-based) emissions from fossil fuels and
   industry, not consumption-based.
-- Sector intensity benchmarks are sector averages, so the WACI is indicative;
-  company-level precision needs company-level disclosures (CDP).
+- **The calculator is illustrative.** Its sector intensities are assumed round
+  numbers, not taken from a specific publication, date or emissions boundary, and
+  holding names do not affect the result — each holding takes its sector's
+  assumed intensity. It applies no "high-" or "low-carbon" label, because there
+  is no documented benchmark for one. A real WACI needs company-level emissions
+  and revenue.
+- **The EU carbon price series is indicative and uncited** (see DATA.md); it is
+  not a reference price and should not be quoted as one.
 
 ## Deploying to Streamlit Community Cloud
 

@@ -1,4 +1,4 @@
-Pair,Basis,Obs,Mean (bps),Median (bps),Std (bps),Min (bps),Max (bps),HAC SE,t-stat,% days negative,Greenium at 5%
+Pair,Basis,Obs,Mean (bps),Median (bps),Std (bps),Min (bps),Max (bps),HAC SE,t-stat,% observations negative,Greenium at 5%
 2027-10_1.30pct,exact twin,1038,-2.4,-1.4,2.25,-9.07,0.0,0.858,-2.79,99.9,yes
 2029-04_2.10pct,exact twin,616,-0.69,-0.69,0.27,-1.64,0.0,0.064,-10.83,99.8,yes
 2030-08_0.00pct,exact twin,1544,-2.17,-1.71,1.85,-7.3,0.44,0.633,-3.43,99.5,yes

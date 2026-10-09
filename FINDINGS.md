@@ -7,15 +7,12 @@ to read the code and workbooks as if someone else had written them and I had to
 sign off on the numbers. That collaboration is visible in the commit history, and
 how it was used is described in the [README](./README.md).
 
-The audit surfaced five defects. Two of them meant features that had never worked
-at all. One meant the portfolio's own headline claim was false. This file
-documents all of them, with the mechanism and the consequence, because a portfolio
-that only shows the finished surface tells you nothing about whether the person
-can be trusted with the parts you can't see.
+The audit surfaced five defects (§1–§6). Two outside reviews then found more
+(§8–§9), including in the audit's own corrections. This file records each one,
+with the mechanism and the consequence.
 
-Every figure below is computed from committed data and asserted in the test
-suite (`pytest tests/` — 341 tests). The fixes are in
-[PR #1](https://github.com/ShangyuZ/Sustainable-finance-portfolio/pull/1).
+The figures below are checked against committed data by the test suite
+(`pytest tests/`); the prose around them is written by hand.
 
 ---
 
@@ -30,10 +27,10 @@ Labelled debt splits into two families:
 
 I looked at one concrete pricing question in each. On Germany's green twin Bunds
 the greenium is small (−1.50bps) and has narrowed since 2021 (§7). In a
-hypothetical sustainability-linked revolver, the ratchet only pays for its own
-verification above 20.5% utilisation (§6). In both cases the direct pricing
-incentive is small, which is consistent with the case for these structures
-resting largely on signalling, investor access and internal accountability.
+hypothetical sustainability-linked revolver, the best-case benefit net of
+assurance is £192.5k a year at an assumed 60% utilisation and disappears below
+about 20.5% (§6). Neither result says what drives the market; each answers one
+pricing question under stated assumptions.
 
 This section used to say more than that. It claimed that the use-of-proceeds
 market "scaled because governments issued", on the strength of an 82% sovereign
@@ -271,33 +268,19 @@ reconciliation so it cannot drift again.
 
 ## 6. The model priced a revolver as if it were a term loan
 
-This is the finding I'd most want to be asked about.
-
 My SLL model said the margin ratchet saves the borrower **£490k a year** if it
 hits all three sustainability targets. That number assumed the £650m revolving
-credit facility was **fully drawn**, with no commitment fee.
+credit facility was **fully drawn**.
 
-Both assumptions flatter the structure, and a revolver is precisely the
-instrument where they are least defensible:
+A revolver is often held partly undrawn, and the ratchet applies only to the
+*drawn* margin. At 60% utilisation the −7.5bps step applies to £390m, not £650m,
+so the best-case saving is **£292.5k**, not £487.5k. Meanwhile the third-party
+assurance that earns it (~£100k a year, assumed) is fixed. So there is a
+**best-case annual pricing break-even at 20.5% utilisation**, under the model's
+assumptions: every SPT met, the whole assurance cost incremental, only the drawn
+margin adjusted, no other incremental costs.
 
-1. **A revolver is normally a liquidity backstop**, held largely undrawn. And
-   the ratchet only applies to the *drawn* margin. At 60% utilisation the
-   −7.5bps step applies to £390m, not £650m, so the best-case saving falls from
-   £487.5k to **£292.5k**.
-2. **The undrawn balance is not free.** It carries a commitment fee —
-   conventionally ~35% of the margin, so 42bps here — which my model ignored
-   entirely. At 60% utilisation that is **£1.09m a year**, several times the
-   whole ratchet saving.
-
-So the facility actually costs £21.26m of drawn interest plus £1.09m of
-commitment fee = **£22.35m**, against the £35.43m the full-drawdown table
-implied.
-
-**Then the part I didn't expect.** The ratchet saving scales with drawdown, but
-the third-party verification cost that earns it (ISAE 3000 assurance, ~£100k) is
-fixed. So there is a break-even:
-
-| Utilisation | Drawn | Best-case saving | Verification | Net |
+| Utilisation | Drawn | Best-case saving | Incremental assurance | Net vs conventional |
 |---|---|---|---|---|
 | 0% | £0m | £0k | £100k | **−£100k** |
 | 20% | £130m | £97.5k | £100k | **−£2.5k** |
@@ -305,24 +288,21 @@ fixed. So there is a break-even:
 | 60% | £390m | £292.5k | £100k | +£192.5k |
 | 100% | £650m | £487.5k | £100k | +£387.5k |
 
-**Break-even utilisation is 20.5%.** Below that, the best possible
-sustainability outcome does not cover the cost of proving you achieved it.
-
-For a facility held as a backstop — the normal case — sustainability-linked
-pricing is close to economically irrelevant, and the real reasons to do it are
-signalling, investor relations and internal accountability. That is a recognised
-criticism of the instrument, and quoting the full-drawdown number obscures it.
-
-It is also worth keeping ±7.5bps in perspective against the spread volatility of
-a BBB– credit. The ratchet is unlikely to be what moves this borrower's cost of
-capital either way.
-
 **What I changed.** Utilisation and commitment fee are now inputs, there are two
 new sheets (Utilisation Sensitivity, Economics & Caveats), and the economics live
 in `sll.py` as tested functions. The workbook's Excel formulas are evaluated in
-the test suite and compared to the Python model cell by cell — a formula-driven
-spreadsheet that silently disagrees with its own code is worse than no
-spreadsheet, because a reader has no reason to doubt it.
+the test suite and compared to the Python model.
+
+**What I originally concluded from this, and why it was wrong.** I first wrote
+that a revolver "is normally a liquidity backstop" below the break-even, so
+sustainability-linked pricing was "close to economically irrelevant". That
+contradicted my own base case, which assumed 60% utilisation and showed a
+£192.5k net benefit. I also set the £1.09m commitment fee against the ratchet as
+if it were a cost of the sustainability feature. It is not: an equivalent
+conventional revolver charges the same fee, so it cancels when comparing the two.
+The fee matters for what the facility costs, not for whether the label pays. The
+correct conclusion is conditional — positive at 60%, absent below about 20.5% —
+and §8 lists the other memo corrections.
 
 ---
 
@@ -343,7 +323,8 @@ observations, September 2020 to October 2026**.
 | Pooled greenium (per observation) | **−1.50bps** |
 | Panel HAC standard error (Driscoll-Kraay, 250-day bandwidth) | 0.330 |
 | t-statistic | −4.5 |
-| Days with a negative spread | 99.8% |
+| Pair-date observations with a negative spread | 99.8% |
+| Dates on which the cross-pair average is negative | 1,544 of 1,544 |
 | Per-pair means | −0.65bps to −2.40bps, all negative |
 
 The greenium narrowed from −4.71bps in 2021 to −0.76bps in 2025. The yearly
@@ -377,7 +358,7 @@ so pairs quoted on the same date counted as independent evidence. A panel HAC
 | Ordinary standard error | −94.2 |
 | Stacked series, 10 lags (what I published) | −28.7 |
 | Driscoll-Kraay, 60 / 120 / 250 lags | −8.2 / −6.0 / −4.5 |
-| t-test across the nine pair means | −5.7 |
+| t-test across the nine pair means (a cross-check; pairs share market shocks) | −5.7 |
 
 The greenium survives every row; my claimed precision did not. The real
 correction from the ordinary standard error is about 21×, not 3.3×. I had also
@@ -427,6 +408,56 @@ the market and about other people's papers. Tests pin numbers to data. They do n
 check that the method behind the number is right, that the sample can carry the
 conclusion, or that a citation says what I said it does. Those need someone else
 to read the work.
+
+## 9. What a second review found: the loan memo, the dashboard, denominators
+
+The second outside review independently re-downloaded the Bund yields and
+reproduced the greenium result exactly (8,094 observations, −1.50bps, SE 0.330,
+t = −4.5). It then read the parts the first review had not.
+
+**The SLL memo's recommendation contradicted its own numbers.** It called 60%
+utilisation realistic, showed a £192.5k net benefit there, and then argued that
+revolvers sit below the 20.5% break-even, so pricing was irrelevant. The
+conclusion is now conditional (§6). It also set the commitment fee against the
+ratchet, though an equivalent conventional facility charges the same fee. The
+model now separates total facility cost from the incremental economics of the
+sustainability feature, and a test checks that the fee cancels.
+
+**The memo claimed safeguards the model does not have.** It said the carbon KPI
+"carries the most weight", but the ratchet counts targets met, not which ones —
+a borrower can miss carbon and still earn a step-down. It called revenue-based
+intensity hard to game, but flat emissions with 20% revenue growth cut intensity
+by 16.7%. Both are now stated as limitations; a carbon condition is proposed and
+marked as not modelled.
+
+**"SBTi-aligned" was asserted, not shown.** SBTi accepts intensity targets only
+when modelled on an approved sector pathway; a chosen 30% is not that. The
+targets are now labelled illustrative, informed by the frameworks, with alignment
+not established. The Sixth Carbon Budget is dated correctly (December 2020), and
+the March 2025 SLLP revision is acknowledged. The break-even is now labelled a
+*best-case annual pricing* break-even with its assumptions listed. A sentence
+claiming that linking the commitment fee would raise the benefit "by roughly the
+commitment-fee percentage" was wrong: the effect depends on utilisation, and at
+0% drawn it is the whole benefit (£170,625 a year here).
+
+**Workbook inconsistencies.** The KPI Tracker labelled every target 2028 while
+the supplier-audit target is 2027; only the carbon KPI had a glide path; "~7% a
+year" conflated 7.5% of baseline (linear) with ~8.5% compounded; and nothing said
+that the KPI Tracker does not drive pricing. All fixed, with the new glide paths
+checked in the formula tests.
+
+**The dashboard attributed numbers to a source that did not contain them.** The
+carbon calculator's sector intensities were labelled "MSCI / TCFD sector
+guidance" with no publication, table, date or boundary, and it called portfolios
+"high-carbon" or "low-carbon" at thresholds with no documented benchmark. It is
+now labelled an illustrative calculator with assumed inputs, and the labels are
+gone.
+
+**The wrong denominator.** "Negative on 99.8% of days" was 99.8% of pair-date
+observations. The date-level statement is stronger and is now the one used: the
+cross-pair daily average is negative on all 1,544 dates. The t-test across pair
+means is now described as a cross-check rather than independent confirmation,
+since the pairs share market shocks.
 
 ## How I check things now
 
