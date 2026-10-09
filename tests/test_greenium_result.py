@@ -170,7 +170,7 @@ def test_sample_is_large_enough_to_report(pooled_row):
 
 def test_spread_is_negative_on_almost_every_day(pooled_row):
     """Persistence is the striking feature; a flaky sign would undercut the claim."""
-    assert pooled_row["% days negative"] > 95.0
+    assert pooled_row["% observations negative"] > 95.0
 
 
 def test_reported_precision_accounts_for_persistence_and_pooling(diagnostics):
@@ -203,6 +203,17 @@ def test_sign_survives_every_inference_choice(diagnostics):
         assert t < -1.96, f"greenium not significant at bandwidth {label}: t = {t}"
     assert diagnostics["pair_means_t"] < -2.31   # 5% two-sided, 8 df
     assert diagnostics["pair_means_df"] == PUBLISHED_N_PAIRS - 1
+
+
+def test_sign_is_stated_with_the_right_denominator(diagnostics):
+    """
+    99.8% is a share of pair-date observations, not of dates. The date-level
+    statement is the cross-pair daily average, negative on every one of 1,544 dates.
+    """
+    assert diagnostics["share_observations_negative_pct"] == pytest.approx(99.8, abs=0.1)
+    assert diagnostics["n_dates"] < diagnostics["pooled_obs"]
+    assert diagnostics["share_dates_daily_average_negative_pct"] == 100.0
+    assert diagnostics["daily_average_max_bps"] < 0
 
 
 def test_headline_depends_on_weighting_and_says_so(diagnostics):

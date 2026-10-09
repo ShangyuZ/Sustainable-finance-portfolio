@@ -136,7 +136,8 @@ def sheet_profile(wb: Workbook, f: sll.Facility) -> None:
         ("Credit rating (hypothetical)", "BBB– (investment grade)"),
         ("Scope 1+2 intensity (baseline)", "310 tCO2e per £m revenue"),
         ("Renewable energy share (baseline)", "18%"),
-        ("Reference framework", "LMA/APLMA/LSTA Sustainability-Linked Loan Principles (2023)"),
+        ("Reference framework", "LMA/APLMA/LSTA Sustainability-Linked Loan Principles "
+                                "(2023 edition; revised March 2025)"),
     ]
     for i, (k, v) in enumerate(rows, 7):
         ws.cell(row=i, column=1, value=k).border = BOX
@@ -150,11 +151,11 @@ def sheet_profile(wb: Workbook, f: sll.Facility) -> None:
     section(ws, 16, "HOW TO USE THIS WORKBOOK")
     note(ws, 17, 2,
          "Yellow cells are inputs; everything else is a live formula. "
-         "Sheet 1 tracks KPI progress. Sheet 2 calibrates the SPTs and derives "
-         "the carbon glide path. Sheet 3 prices the facility — change the "
-         "utilisation or any rate and the scenario table recalculates. Sheet 4 "
-         "shows how the ratchet benefit varies with drawdown, and Sheet 5 asks "
-         "whether the structure pays for itself at all.", rows=4)
+         "Sheet 1 tracks KPI progress. Sheet 2 sets illustrative SPTs and derives "
+         "linear glide paths for all three KPIs. Sheet 3 prices the facility — "
+         "the number of SPTs met is a separate input there, not driven by Sheet 1. "
+         "Sheet 4 shows how the ratchet benefit varies with drawdown, and Sheet 5 "
+         "compares the facility with an equivalent conventional revolver.", rows=4)
 
     section(ws, 22, "REPRODUCIBILITY")
     note(ws, 23, 2,
@@ -167,18 +168,19 @@ def sheet_profile(wb: Workbook, f: sll.Facility) -> None:
 def sheet_kpi_tracker(wb: Workbook) -> None:
     """Baseline / current / target per KPI with live progress formulas."""
     ws = wb.create_sheet("1. KPI Tracker")
-    title_bar(ws, 1, 6, "KPI TRACKER — BASELINE VS CURRENT VS TARGET")
+    title_bar(ws, 1, 7, "KPI TRACKER — BASELINE VS CURRENT VS TARGET")
 
     headers(ws, 3, ["KPI", "Metric", "Baseline (2024)",
-                    "Current (2026, hypothetical)", "Target / SPT (2028)",
-                    "Progress to target"])
+                    "Current (2026, hypothetical)", "Target / SPT",
+                    "Progress to target", "Target year"])
     kpis = [
-        ("Carbon intensity", "tCO2e per £m revenue (Scope 1+2)", 310, 267, 217),
-        ("Renewable energy share", "% of electricity from renewables", 18, 34, 60),
+        ("Carbon intensity", "tCO2e per £m revenue (Scope 1+2)", 310, 267, 217, 2028),
+        ("Renewable energy share", "% of electricity from renewables", 18, 34, 60, 2028),
         ("Supply chain audit coverage", "% tier-1 suppliers audited to ESG standards",
-         35, 52, 80),
+         35, 52, 80, 2027),
     ]
-    for i, (name, metric, base, cur, target) in enumerate(kpis, 4):
+    for i, (name, metric, base, cur, target, year) in enumerate(kpis, 4):
+        ws.cell(row=i, column=7, value=year).border = BOX
         ws.cell(row=i, column=1, value=name).border = BOX
         m = ws.cell(row=i, column=2, value=metric)
         m.border = BOX
@@ -194,8 +196,9 @@ def sheet_kpi_tracker(wb: Workbook) -> None:
          "progress, not reported data. Progress is computed as "
          "(current − baseline) / (target − baseline), so it reads correctly for "
          "carbon intensity (which must fall) and for the two shares (which must "
-         "rise).", rows=3)
-    widths(ws, {"A": 28, "B": 40, "C": 16, "D": 22, "E": 18, "F": 18})
+         "rise). Progress here does not set pricing: the number of SPTs met is "
+         "entered separately on Sheet 3.", rows=3)
+    widths(ws, {"A": 28, "B": 40, "C": 16, "D": 22, "E": 18, "F": 18, "G": 12})
 
 
 def sheet_spt(wb: Workbook) -> None:
@@ -203,13 +206,14 @@ def sheet_spt(wb: Workbook) -> None:
     ws = wb.create_sheet("2. SPT Calibration")
     title_bar(ws, 1, 5, "SUSTAINABILITY PERFORMANCE TARGET CALIBRATION")
 
-    headers(ws, 3, ["KPI", "Baseline (2024)", "Target year", "SPT", "Benchmark source"])
+    headers(ws, 3, ["KPI", "Baseline (2024)", "Target year", "SPT",
+                    "Informed by (alignment not established)"])
     rows = [
         ("Carbon intensity", "310 tCO2e/£m rev", 2028, "<=217 tCO2e/£m rev (-30%)",
-         "SBTi 1.5C near-term pathway (Industrials)"),
+         "SBTi near-term criteria"),
         ("Renewable share", "18%", 2028, ">=60%",
-         "UK Climate Change Committee 6th Carbon Budget"),
-        ("Supply chain audit", "35%", 2027, ">=80%", "LMA SLLP best practice"),
+         "UK CCC Sixth Carbon Budget (December 2020)"),
+        ("Supply chain audit", "35%", 2027, ">=80%", "LMA SLLP guidance on ambition"),
     ]
     for i, row in enumerate(rows, 4):
         for j, val in enumerate(row, 1):
@@ -221,10 +225,10 @@ def sheet_spt(wb: Workbook) -> None:
                 ws.cell(row=i, column=j).fill = PatternFill("solid", fgColor=LIGHT)
 
     note(ws, 8, 5,
-         "A 30% carbon intensity reduction over four years (~7%/yr) is consistent "
-         "with the SBTi near-term pathway for Industrials. SLLP guidance requires "
-         "SPTs to be a material improvement on baseline and benchmarked against a "
-         "recognised pathway rather than set by the borrower alone.", rows=2)
+         "Illustrative targets informed by the frameworks named; alignment has not "
+         "been independently established. SBTi accepts Scope 1+2 intensity targets "
+         "only when modelled on an approved 1.5C sector pathway applicable to the "
+         "company, so a chosen percentage is not evidence of alignment.", rows=2)
 
     section(ws, 11, "CARBON INTENSITY GLIDE PATH (linear, baseline → SPT)")
     ws.cell(row=12, column=1, value="Baseline").border = BOX
@@ -242,17 +246,42 @@ def sheet_spt(wb: Workbook) -> None:
         # either endpoint moves the whole path.
         formula = f"=$B$12+($B$13-$B$12)*{i}/{n}"
         result_cell(ws, 16, i + 1, formula, "#,##0.0", bold=(i in (0, n)))
-    ws.cell(row=17, column=1, value="Annual reduction required (%)").font = Font(
+    ws.cell(row=17, column=1,
+            value="Change on the prior year (%) — the linear path moves 7.5% of the "
+                  "baseline a year, so this rate rises over time").font = Font(
         italic=True, size=9, color=GREY)
     for i in range(1, len(years)):
         col = get_column_letter(i + 1)
         prev = get_column_letter(i)
         result_cell(ws, 18, i + 1, f"={col}16/{prev}16-1", "0.0%")
 
-    note(ws, 20, 5,
-         "The glide path is formula-driven from the two yellow cells, so changing "
-         "the baseline or the SPT moves every interim target. Interim SPTs matter "
-         "because the ratchet is tested annually, not once at maturity.", rows=2)
+    ws.cell(row=19, column=1, value="Equivalent constant annual rate").border = BOX
+    result_cell(ws, 19, 2, "=($B$13/$B$12)^(1/4)-1", "0.0%")
+
+    note(ws, 21, 5,
+         "The glide paths are formula-driven from the yellow endpoint cells, so "
+         "changing a baseline or an SPT moves every interim target. Interim SPTs "
+         "matter because the ratchet is tested annually, not once at maturity.",
+         rows=2)
+
+    # The other two KPIs get the same treatment: linear from baseline to SPT.
+    paths = [
+        (24, "RENEWABLE ELECTRICITY SHARE (%) — 2024 → 2028", 18, 60, 2028),
+        (29, "SUPPLY-CHAIN AUDIT COVERAGE (%) — 2024 → 2027", 35, 80, 2027),
+    ]
+    for top, label, base, target, end_year in paths:
+        section(ws, top, label)
+        ws.cell(row=top + 1, column=1, value="Baseline").border = BOX
+        input_cell(ws, top + 1, 2, base, "#,##0.0")
+        ws.cell(row=top + 1, column=3, value="SPT").border = BOX
+        input_cell(ws, top + 1, 4, target, "#,##0.0")
+        span = list(range(2024, end_year + 1))
+        headers(ws, top + 2, [str(y) for y in span])
+        last = len(span) - 1
+        for i, _ in enumerate(span):
+            result_cell(ws, top + 3, i + 1,
+                        f"=$B${top + 1}+($D${top + 1}-$B${top + 1})*{i}/{last}",
+                        "#,##0.0", bold=(i in (0, last)))
     widths(ws, {"A": 30, "B": 20, "C": 14, "D": 28, "E": 42})
 
 
@@ -276,8 +305,8 @@ def sheet_ratchet(wb: Workbook, f: sll.Facility) -> None:
         ("Full step (bps) — all 3 SPTs met", f.ratchet.full_step_bps, "#,##0.0"),
         ("Partial step (bps) — 2 of 3 met", f.ratchet.partial_step_bps, "#,##0.0"),
         ("Step-up (bps) — 0 met", f.ratchet.step_up_bps, "#,##0.0"),
-        ("Annual verification cost (£m)", f.verification_cost_m, "#,##0.000"),
-        ("SPTs met this period (0–3)", f.ratchet.n_kpis, "0"),
+        ("Incremental assurance cost (£m/yr)", f.verification_cost_m, "#,##0.000"),
+        ("SPTs met this period (0–3) — scenario input", f.ratchet.n_kpis, "0"),
     ]
     for i, (label, value, fmt) in enumerate(inputs, 5):
         ws.cell(row=i, column=1, value=label).border = BOX
@@ -323,9 +352,10 @@ def sheet_ratchet(wb: Workbook, f: sll.Facility) -> None:
 
     note(ws, 34, 7,
          "The commitment fee is identical across scenarios because this structure "
-         "ratchets only the drawn margin. Some SLLs also ratchet the commitment "
-         "fee pro rata, which would widen the spread between scenarios by roughly "
-         "the commitment-fee percentage.", rows=2)
+         "ratchets only the drawn margin, and it would be charged on an equivalent "
+         "conventional revolver too. If the fee were also linked to the margin, the "
+         "effect would fall on the undrawn balance and so depend on utilisation: at "
+         "0% drawn it would be the largest part of the benefit.", rows=2)
     widths(ws, {"A": 34, "B": 18, "C": 16, "D": 22, "E": 20, "F": 18, "G": 20})
 
 
@@ -340,8 +370,8 @@ def sheet_utilisation(wb: Workbook, f: sll.Facility) -> None:
          "whether an SLL is worth doing on price alone.", rows=2)
 
     headers(ws, 5, ["Utilisation", "Drawn (£m)", "Total cost at base margin (£m)",
-                    "Max annual saving (£k)", "Verification cost (£k)",
-                    "Net benefit (£k)"])
+                    "Max annual saving (£k)", "Incremental assurance (£k)",
+                    "Net vs conventional (£k)"])
     levels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     for i, u in enumerate(levels):
         r = 6 + i
@@ -362,44 +392,45 @@ def sheet_utilisation(wb: Workbook, f: sll.Facility) -> None:
 
     be = f.breakeven_utilisation()
     section(ws, 13, "BREAK-EVEN")
-    ws.cell(row=14, column=1, value="Break-even utilisation").border = BOX
+    ws.cell(row=14, column=1, value="Best-case pricing break-even").border = BOX
     result_cell(ws, 14, 2,
                 f"={ref('verif')}/({ref('size')}*{ref('full')}/100/100)", "0.0%",
                 bold=True)
     ws.cell(row=14, column=3,
-            value="Below this drawdown the best-case ratchet saving does not cover "
-                  "the verification cost.").font = Font(italic=True, size=9, color=GREY)
+            value="Below this drawdown the best-case annual saving does not cover "
+                  "the incremental assurance cost, under the model assumptions."
+            ).font = Font(italic=True, size=9, color=GREY)
 
     note(ws, 16, 6,
-         f"At the default inputs the break-even is about {be:.0%} utilisation. "
-         f"A borrower expecting to keep the facility largely undrawn — which is "
-         f"the normal use of an RCF as a liquidity backstop — gets little or no "
-         f"pricing benefit, and the case for the SLL has to rest on signalling, "
-         f"investor relations or internal accountability rather than on cost. "
-         f"That is a recognised criticism of the instrument and it is worth being "
-         f"explicit about rather than quoting the full-drawdown figure.", rows=3)
+         f"At the default inputs the best-case annual pricing break-even is about "
+         f"{be:.0%} utilisation. It assumes every SPT is met, the whole assurance "
+         f"cost is incremental (already-verified reporting can reduce it), only the "
+         f"drawn margin changes, and there are no other incremental costs. The "
+         f"commitment fee is excluded because an equivalent conventional revolver "
+         f"would charge it too. Where a real borrower would operate is a liquidity "
+         f"question this model does not answer.", rows=3)
     widths(ws, {"A": 14, "B": 14, "C": 28, "D": 22, "E": 20, "F": 18})
 
 
 def sheet_economics(wb: Workbook, f: sll.Facility) -> None:
     """Does the structure pay for itself, and what else would have to be true."""
     ws = wb.create_sheet("5. Economics & Caveats")
-    title_bar(ws, 1, 4, "IS THE STRUCTURE WORTH IT?")
+    title_bar(ws, 1, 4, "INCREMENTAL ECONOMICS VS AN EQUIVALENT CONVENTIONAL REVOLVER")
 
-    section(ws, 3, "AT THE DEFAULT INPUTS")
+    section(ws, 3, "AT THE DEFAULT INPUTS (commitment fee cancels: charged on both)")
     headers(ws, 4, ["Measure", "Value", "Unit", "Note"])
     rows = [
         ("Facility size", f"={ref('size')}", "£m", "Committed amount"),
         ("Assumed utilisation", f"={ref('util')}", "%", "Share drawn on average"),
         ("Best-case annual saving", f"=$B$5*$B$6*{ref('full')}/100/100*1000", "£k",
          "All 3 SPTs met, on the drawn balance"),
-        ("Annual verification cost", f"={ref('verif')}*1000", "£k",
-         "ISAE 3000 assurance; fixed, does not scale with drawdown"),
-        ("Net annual benefit", "=$B$7-$B$8", "£k",
-         "Negative means the structure costs more than it returns"),
-        ("Break-even utilisation",
+        ("Incremental assurance cost", f"={ref('verif')}*1000", "£k",
+         "Fixed; may be lower where reporting is already verified"),
+        ("Net annual benefit vs conventional", "=$B$7-$B$8", "£k",
+         "Negative means the feature costs more than it returns"),
+        ("Best-case pricing break-even",
          f"={ref('verif')}/({ref('size')}*{ref('full')}/100/100)", "%",
-         "Drawdown at which saving = verification cost"),
+         "Drawdown at which best-case saving = assurance cost"),
     ]
     fmts = ["#,##0", "0%", "#,##0.0", "#,##0.0", "+#,##0.0;-#,##0.0", "0.0%"]
     for i, ((label, formula, unit, n), fmt) in enumerate(zip(rows, fmts), 5):
@@ -412,11 +443,12 @@ def sheet_economics(wb: Workbook, f: sll.Facility) -> None:
 
     section(ws, 12, "WHAT THIS MODEL DELIBERATELY DOES NOT CLAIM")
     caveats = [
-        "The ratchet is priced on the drawn margin only. Structures that also "
-        "ratchet the commitment fee would show a larger spread.",
-        "A ±7.5bps step is small relative to credit-spread volatility, so in "
-        "practice the SLL label is unlikely to be the binding factor in the "
-        "borrower's cost of capital.",
+        "The ratchet is priced on the drawn margin only. A linked commitment fee "
+        "would add a benefit on the undrawn balance, largest when least drawn.",
+        "The pricing grid is unweighted: it counts SPTs met, not which ones, so "
+        "the carbon target can be missed while a partial step-down is earned.",
+        "The SPTs are illustrative; alignment with SBTi, CCC or SLLP benchmarks "
+        "has not been independently established.",
         "No discounting: these are single-year figures. Over a five-year facility "
         "the saving is roughly five times the annual number, less the verification "
         "cost each year.",
@@ -440,7 +472,7 @@ def sheet_economics(wb: Workbook, f: sll.Facility) -> None:
     r = 13 + len(caveats) + 1
     section(ws, r, "VERIFICATION & REPORTING")
     note(ws, r + 1, 4,
-         "External verifier: Big 4 assurance or a specialist ESG verifier. "
+         "External verifier: an auditor or specialist ESG verifier. "
          "Reporting: annual sustainability report plus a loan anniversary "
          "compliance letter. Assurance standard: ISAE 3000 / AA1000AS. KPI data "
          "sourced from SECR disclosures (energy and carbon) and the REGO "

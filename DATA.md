@@ -18,7 +18,7 @@ derived output. The reasoning is in §1 and §2.
 | German Federal securities, daily yields | **estimator output only** — `data/greenium_*.csv` | [Deutsche Finanzagentur](https://www.deutsche-finanzagentur.de) | **All rights reserved** | ✅ verified — observations removed, see §2 |
 | EU ETS allowance prices | `project3-.../data/eua_prices.csv` | "Compiled from public sources" | Unknown | ❌ **uncited and not verified** — see §3 |
 | Greenium literature | cited inline | Published papers | Academic, cited not reproduced | ✅ |
-| Sector carbon intensities | hardcoded in `app.py` | MSCI / TCFD sector guidance, public | Public guidance | ⚠️ indicative benchmarks |
+| Sector carbon intensities | hardcoded in `app.py` | **None** — assumed illustrative inputs | n/a | ⚠️ not sourced; the calculator is labelled illustrative |
 
 ## 1. Climate Bonds Initiative issuance data — removed
 

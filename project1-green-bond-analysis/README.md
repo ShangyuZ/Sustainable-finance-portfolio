@@ -252,8 +252,9 @@ exact twins — **8,094 paired daily observations, September 2020 to October 202
 | Pooled greenium (per observation) | **−1.50bps** (panel HAC SE 0.330, t = −4.5) |
 | Equal weight per pair / per date | −1.29bps / −2.04bps |
 | t across bandwidths 60 / 120 / 250 days | −8.2 / −6.0 / −4.5 |
-| t across the nine pair means (8 df) | −5.7 |
-| Days with a negative spread | 99.8% |
+| t across the nine pair means (8 df; a cross-check — pairs share market shocks) | −5.7 |
+| Pair-date observations with a negative spread | 99.8% |
+| Dates on which the cross-pair average is negative | 1,544 of 1,544 |
 | Per-pair means | −0.65bps to −2.40bps, all negative |
 | 2021 → 2025 (descriptive) | −4.71bps → −0.76bps |
 

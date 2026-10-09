@@ -6,12 +6,14 @@
     "lag_20": 0.97,
     "lag_60": 0.86
   },
+  "daily_average_max_bps": -0.42,
   "date_max": "2026-10-01",
   "date_min": "2020-09-07",
   "equal_weight_per_date_mean_bps": -2.04,
   "equal_weight_per_pair_mean_bps": -1.29,
   "maturity_vs_greenium_corr": 0.11,
   "median_cross_pair_corr_of_daily_changes": 0.08,
+  "n_dates": 1544,
   "n_pairs": 9,
   "pair_means_df": 8,
   "pair_means_t": -5.7,
@@ -28,7 +30,8 @@
   },
   "se_inflation_vs_ordinary": 20.8,
   "se_method": "Driscoll-Kraay (residuals summed across pairs by date, Bartlett weights)",
-  "share_days_negative_pct": 99.8,
+  "share_dates_daily_average_negative_pct": 100.0,
+  "share_observations_negative_pct": 99.8,
   "superseded_stacked_nw_lags": 10,
   "superseded_stacked_nw_t": -28.7
 }

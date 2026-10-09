@@ -9,14 +9,14 @@ core intellectual challenge — and the area most prone to greenwashing.
 
 This project structures a hypothetical SLL from first principles for a fictional
 UK industrial company, benchmarked against the LMA/APLMA/LSTA Sustainability-Linked
-Loan Principles (2023 edition). All data and targets are illustrative only —
-no real company financial data is used.
+Loan Principles (2023 edition; revised March 2025). All data and targets are
+illustrative only — no real company financial data is used.
 
-**The main finding is that the headline ratchet saving is not the real one.** A
-revolving facility is rarely fully drawn, the ratchet applies only to the drawn
-margin, and the verification cost that earns the saving is fixed. Taken together
-these decide whether the structure pays for itself at all — see
-[Financial Impact](#4-financial-impact) below.
+**The main finding is that the pricing benefit depends on utilisation.** The
+ratchet applies only to the drawn margin, while the assurance cost that earns it
+is fixed. Under the model's assumptions the best-case benefit, net of assurance,
+is **£192.5k a year at 60% utilisation** and disappears below about **20.5%** —
+see [Financial Impact](#4-financial-impact) below.
 
 ## Hypothetical Borrower
 
@@ -54,20 +54,32 @@ Per SLLP guidance, KPIs must be:
 
 ### 2. Sustainability Performance Targets (SPTs)
 
-SPTs must represent a material improvement vs baseline, consistent with recognised
-science-based pathways (e.g. SBTi) or sector benchmarks.
+SPTs must represent a material improvement vs baseline. The targets below are
+**illustrative, informed by the frameworks named; their alignment with those
+frameworks has not been independently established.** SBTi, for example, accepts
+Scope 1+2 intensity targets only when modelled on an approved 1.5°C sector pathway
+applicable to the company — a chosen percentage is not evidence of alignment.
 
-| KPI | Baseline (2024) | Target Year | SPT | Benchmark Source |
+| KPI | Baseline (2024) | Target Year | SPT | Informed by |
 |-----|----------------|-------------|-----|-----------------|
-| Carbon intensity | 310 tCO₂e/£m rev | 2028 | ≤217 tCO₂e/£m rev (−30%) | SBTi 1.5°C near-term pathway (Industrials) |
-| Renewable share | 18% | 2028 | ≥60% | UK Climate Change Committee 6th Carbon Budget |
-| Supply chain audit | 35% | 2027 | ≥80% | LMA SLLP best practice |
+| Carbon intensity | 310 tCO₂e/£m rev | 2028 | ≤217 tCO₂e/£m rev (−30%) | SBTi near-term criteria |
+| Renewable share | 18% | 2028 | ≥60% | UK CCC Sixth Carbon Budget |
+| Supply chain audit | 35% | 2027 | ≥80% | LMA SLLP guidance on ambition |
 
-A 30% carbon intensity reduction over four years (~7% per year) is consistent
-with the SBTi near-term pathway for the Industrials sector. The model derives the
-interim glide path (310 → 286.75 → 263.5 → 240.25 → 217) from the two endpoints,
-so changing either moves every interim target — which matters because the ratchet
-is tested annually, not once at maturity.
+The model derives a linear interim path for every KPI from its two endpoints —
+carbon 310 → 286.75 → 263.5 → 240.25 → 217, renewables 18 → 28.5 → 39 → 49.5 → 60,
+audit coverage 35 → 50 → 65 → 80 by 2027 — because the ratchet is tested
+annually, not once at maturity. On the linear carbon path intensity falls by 7.5%
+of the baseline each year; the equivalent constant annual rate is about 8.5%.
+
+Two limitations of the KPI design:
+
+- **The grid is unweighted.** Pricing depends on how many SPTs are met, not which:
+  missing carbon but meeting the other two still earns the 2.5bps partial
+  step-down.
+- **Revenue-normalised intensity can improve without emissions falling.** Flat
+  emissions with 20% revenue growth take intensity from 310 to about 258 — an
+  apparent 16.7% improvement.
 
 ### 3. Margin Ratchet Design
 
@@ -99,28 +111,25 @@ verification. Market practice typically ranges from 2.5–15 bps per year.
 | No adjustment | SONIA + 120 bps | 5.450% | £35.43m | — |
 | No SPTs met | SONIA + 127.5 bps | 5.525% | £35.91m | +£487.5k |
 
-#### Why that overstates the benefit
+At full drawdown there is no undrawn balance, so no commitment fee is payable.
 
-A revolving credit facility is normally a **liquidity backstop**, held largely
-undrawn. Two things follow, and the earlier version of this model missed both:
+#### Total cost at lower utilisation
 
-1. **The ratchet only touches the drawn margin.** At 60% utilisation the −7.5bps
-   step applies to £390m, not £650m, so the best-case saving falls from £487.5k to
-   **£292.5k**.
-2. **The undrawn balance is not free.** It carries a commitment fee —
-   conventionally ~35% of the margin, so 42bps here — which the original model
-   ignored entirely. At 60% utilisation that is £1.09m a year on the undrawn
-   £260m, several times larger than the entire ratchet saving.
+The ratchet touches only the drawn margin. At 60% utilisation the −7.5bps step
+applies to £390m, so the best-case saving is **£292.5k** rather than £487.5k. The
+undrawn £260m carries a commitment fee — 35% of the margin, so 42bps — of £1.09m a
+year. Total facility cost at 60% with no adjustment is £21.26m drawn interest +
+£1.09m commitment fee = **£22.35m**.
 
-At 60% utilisation the facility therefore costs £21.26m drawn interest + £1.09m
-commitment fee = **£22.35m**, against the £35.43m the full-drawdown table implies.
+#### Incremental economics: versus an equivalent conventional revolver
 
-#### Does the structure pay for itself?
+Whether the sustainability feature pays is a different question from what the
+facility costs. Against an otherwise identical conventional revolver, the
+commitment fee is charged on both and **cancels**. What remains is the
+drawn-margin adjustment and the incremental assurance cost (taken here as £100k a
+year, fixed):
 
-The ratchet saving scales with drawdown; the annual third-party verification cost
-(ISAE 3000 assurance, taken here as £100k) does not. So there is a break-even:
-
-| Utilisation | Drawn | Best-case saving | Verification | Net |
+| Utilisation | Drawn | Best-case margin saving | Incremental assurance | Net vs conventional |
 |---|---|---|---|---|
 | 0% | £0m | £0k | £100k | **−£100k** |
 | 20% | £130m | £97.5k | £100k | **−£2.5k** |
@@ -129,18 +138,15 @@ The ratchet saving scales with drawdown; the annual third-party verification cos
 | 80% | £520m | £390k | £100k | +£290k |
 | 100% | £650m | £487.5k | £100k | +£387.5k |
 
-**Break-even utilisation is 20.5%.** Below that, the best possible ratchet outcome
-does not cover the cost of proving you achieved it.
+**Best-case annual pricing break-even under the model assumptions: 20.5%
+utilisation.** It assumes every SPT is met, the whole £100k of assurance is
+incremental (under the SLLP, information already verified in annual reporting
+need not be verified again, which would lower it), only the drawn margin changes,
+and there are no other incremental costs.
 
-This is the substantive point of the exercise. A borrower using the facility as an
-undrawn backstop gets little or no pricing benefit, and the case for the SLL has to
-rest on signalling, investor relations or internal accountability rather than on
-cost of capital. That is a recognised criticism of the instrument, and quoting only
-the full-drawdown figure obscures it.
-
-It is also worth keeping the magnitude in perspective: ±7.5bps is small relative to
-ordinary credit-spread volatility for a BBB– borrower, so the SLL label is unlikely
-to be the binding factor in the cost of capital either way.
+So the pricing case is conditional: positive at the assumed 60% utilisation,
+absent below about 20.5%. The model does not say where a real borrower would
+operate — that is a liquidity and credit question.
 
 ### 5. Verification & Reporting
 
@@ -153,8 +159,14 @@ to be the binding factor in the cost of capital either way.
 
 ## What this model deliberately does not claim
 
-- The ratchet is priced on the drawn margin only. Structures that also ratchet the
-  commitment fee pro rata would show a wider spread between scenarios.
+- The ratchet is priced on the drawn margin only. If the commitment fee were also
+  linked, the effect would depend on utilisation: at 0% drawn, a fee at 35% of
+  the margin would save £170,625 a year with all SPTs met, while the drawn-only
+  ratchet saves nothing.
+- The number of SPTs met is a scenario input; the KPI Tracker shows progress but
+  does not drive pricing.
+- The SPTs are illustrative; their alignment with SBTi, CCC or SLLP benchmarks
+  has not been independently established.
 - No discounting — these are single-year figures.
 - Verification cost is one illustrative input; real assurance costs vary with
   scope, and the first year is usually dearer.
@@ -166,15 +178,15 @@ to be the binding factor in the cost of capital either way.
 
 [`memo/SLL_Structuring_Memo.pdf`](./memo/SLL_Structuring_Memo.pdf) is the
 credit-committee-style document the model supports. It recommends structuring the
-facility as sustainability-linked **but not presenting the margin ratchet as the
-commercial rationale**, on the basis that the ratchet is worth £292.5k at
-realistic utilisation against a £1.09m commitment fee the original model ignored,
-and only covers its own verification cost above 20.5% drawdown.
+facility as sustainability-linked and **presenting the pricing benefit as
+conditional on utilisation**: £192.5k a year net at the assumed 60%, nothing below
+about 20.5%.
 
-It also takes a view on the KPI set rather than just describing it: KPI 3
-(supply-chain audit *coverage*) measures process rather than outcome, and the
-renewable-share SPT can be met substantially through procurement rather than
-operational change. Both are accepted, with conditions, and said plainly.
+It also takes a view on the KPI set: the grid is unweighted, revenue-normalised
+intensity can improve without emissions falling, KPI 3 measures process rather
+than outcome, and the renewable SPT can be met largely through procurement. It
+proposes a carbon condition on any step-down — a term-sheet recommendation that
+is stated as not modelled.
 
 ## Running it
 
@@ -192,9 +204,9 @@ Rebuilds `SLL_Structuring_Model.xlsx`. Options: `--output`, `--utilisation`.
 pytest ../tests/test_sll.py ../tests/test_sll_workbook.py
 ```
 
-The workbook is generated, not hand-maintained, and the tests assert that its
-Excel formulas evaluate to the same numbers as the Python model — so the figures
-in this README, the code, and the spreadsheet cannot drift apart.
+The workbook is generated, not hand-maintained, and the tests check that its
+Excel formulas evaluate to the same numbers as the Python model. The prose in
+this README and the memo is written by hand.
 
 ## Files
 
@@ -211,11 +223,11 @@ in this README, the code, and the spreadsheet cannot drift apart.
 | Sheet | Contents |
 |---|---|
 | 0. Borrower Profile | Hypothetical borrower, usage guide |
-| 1. KPI Tracker | Baseline vs current vs target, live progress % |
-| 2. SPT Calibration | SPTs with benchmark sources; formula-driven glide path |
+| 1. KPI Tracker | Baseline vs current vs target, with target years; live progress % |
+| 2. SPT Calibration | Illustrative SPTs; formula-driven glide paths for all three KPIs |
 | 3. Margin Ratchet | Pricing with utilisation and commitment fee; scenario table |
 | 4. Utilisation Sensitivity | Ratchet benefit by drawdown, with break-even |
-| 5. Economics & Caveats | Does it pay for itself, and what the model does not claim |
+| 5. Economics & Caveats | Incremental economics vs a conventional facility, and what the model does not claim |
 
 Yellow cells are inputs; everything else is a live formula.
 
@@ -224,9 +236,9 @@ Yellow cells are inputs; everything else is a live formula.
 - [x] Framework document and structuring approach
 - [x] Hypothetical borrower profile
 - [x] KPI selection with rationale
-- [x] SPT calibration with benchmark sources and formula-driven glide path
+- [x] Illustrative SPT calibration with formula-driven glide paths
 - [x] Margin ratchet design with financial impact
-- [x] Realistic RCF economics — utilisation, commitment fee, break-even analysis
+- [x] RCF economics — utilisation, total cost, incremental cost vs conventional, break-even
 - [x] Verification & reporting framework
 - [x] Reproducible build from script, with unit tests
 - [x] Structuring memo with a recommendation and conditions precedent
@@ -235,15 +247,15 @@ Yellow cells are inputs; everything else is a live formula.
 
 LMA/APLMA/LSTA (2023). *Sustainability-Linked Loan Principles.*
 
-ICMA (2023). *Sustainability-Linked Bond Principles.*
+LMA/APLMA/LSTA (2025). *Sustainability-Linked Loan Principles*, revised 26 March 2025.
 
-SBTi (2023). *Corporate Net-Zero Standard — Industrials Sector Guidance.*
+Science Based Targets initiative. *SBTi Corporate Near-Term Criteria*, version 5.3.1.
 
-UK Climate Change Committee (2023). *6th Carbon Budget: Sector Pathways.*
+Science Based Targets initiative. *Steel sector guidance.*
 
-CDP (2024). *CDP Climate Questionnaire — Technical Note on Scope 1+2 reporting.*
+UK Climate Change Committee (December 2020). *The Sixth Carbon Budget.*
 
 ---
-*Last updated: 2026-10-02*
+*Last updated: 2026-10-09*
 
 *Part of the [Sustainable Finance Portfolio](../README.md)*

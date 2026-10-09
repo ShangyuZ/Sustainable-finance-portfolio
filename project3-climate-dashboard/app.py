@@ -1,10 +1,11 @@
 """
 Climate & Energy Transition Dashboard
 ======================================
-Freely licensed data only — no API keys required:
-  • Our World in Data — energy dataset (CC BY)  — electricity mix by country
-  • Our World in Data — CO2 dataset   (CC BY)  — emissions by country
-  • Bundled EUA prices (compiled from public sources) — EU carbon price history
+No API keys required. Data:
+  • Our World in Data — energy dataset (CC BY 4.0) — electricity mix by country
+  • Our World in Data — CO2 dataset   (CC BY 4.0) — emissions by country
+  • Bundled EUA prices — indicative and uncited (see DATA.md), not a reference series
+  • Sector carbon intensities in the calculator — assumed illustrative inputs
 
 Note on the two OWID datasets: emissions columns (``co2``, ``co2_per_capita``)
 live in OWID's co2-data repository, NOT in the energy dataset. They are loaded
@@ -146,7 +147,8 @@ st.sidebar.caption(
     "**Data sources**\n\n"
     "[OWID energy dataset](https://github.com/owid/energy-data) (CC BY 4.0)\n\n"
     "[OWID CO2 dataset](https://github.com/owid/co2-data) (CC BY 4.0)\n\n"
-    "EUA prices compiled from public sources"
+    "EUA prices: indicative, uncited series (see DATA.md)\n\n"
+    "Carbon calculator: assumed sector intensities"
 )
 
 
@@ -562,14 +564,16 @@ elif section == "🏆 Country Climate Scorecard":
 # ══════════════════════════════════════════════════════════════════════════
 
 else:
-    st.title("Portfolio Carbon Intensity Calculator")
+    st.title("Portfolio Carbon Intensity Calculator (illustrative)")
     st.caption(
-        "Weighted Average Carbon Intensity (WACI) using TCFD-aligned sector benchmarks. "
-        "No company-specific or proprietary data required."
+        "An illustrative, sector-based calculator of Weighted Average Carbon "
+        "Intensity (WACI), the portfolio metric recommended by the TCFD. The "
+        "sector intensities are assumed inputs, not sourced figures."
     )
 
-    # Sector carbon intensity benchmarks (tCO₂e per $m revenue)
-    # Source: MSCI TCFD sector guidance — publicly available
+    # Assumed sector carbon intensities (tCO₂e per $m revenue). Round illustrative
+    # numbers chosen to show the calculation, not taken from a specific
+    # publication, table, date or emissions boundary.
     SECTOR_INTENSITY: dict[str, int] = {
         "Energy — Oil & Gas":        850,
         "Utilities":                  540,
@@ -585,8 +589,10 @@ else:
     }
 
     st.info(
-        "Uses **sector-average** benchmarks (tCO₂e per $m revenue). "
-        "For company-level precision, use CDP or MSCI ESG data."
+        "Each holding is assigned the **assumed** intensity of the sector you "
+        "select (tCO₂e per $m revenue). Names are labels only and do not affect "
+        "the calculation. A real WACI needs each company's reported emissions "
+        "and revenue."
     )
 
     n_hold = int(st.number_input("Number of holdings", min_value=1, max_value=20, value=4))
@@ -644,13 +650,10 @@ else:
         fig.update_layout(plot_bgcolor="white")
         st.plotly_chart(fig, width="stretch")
 
+        # No "high-carbon" or "low-carbon" label: there is no documented benchmark
+        # behind any threshold, and the inputs themselves are assumed.
         if abs(total_w - 100) < 0.5:
-            if waci > 300:
-                st.warning(f"⚠️ High-carbon portfolio — WACI {waci:.0f}. Heavy exposure to fossil-fuel sectors.")
-            elif waci < 80:
-                st.success(f"🌿 Low-carbon portfolio — WACI {waci:.0f}.")
-            else:
-                st.info(f"Portfolio WACI: {waci:.0f} tCO₂e / $m revenue.")
+            st.info(f"Illustrative portfolio WACI: {waci:.0f} tCO₂e / $m revenue.")
         else:
             st.warning(
                 f"Weights sum to {total_w:.1f}%, so the WACI above is scaled by that "
@@ -659,6 +662,7 @@ else:
             )
 
         st.caption(
-            "**Methodology:** WACI = Σ (portfolio weight × sector carbon intensity benchmark). "
-            "Benchmarks from MSCI / TCFD sector guidance (publicly available)."
+            "**Methodology:** WACI = Σ (portfolio weight × sector carbon intensity). "
+            "The sector intensities are assumed illustrative inputs; the result "
+            "demonstrates the calculation, not any real portfolio's footprint."
         )
