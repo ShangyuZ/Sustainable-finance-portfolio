@@ -358,3 +358,52 @@ def test_load_yields_rejects_missing_columns(tmp_path):
     pd.DataFrame({"date": ["2024-01-01"], "isin": ["A"]}).to_csv(path, index=False)
     with pytest.raises(ValueError, match="missing columns"):
         G.load_yields(str(path))
+
+
+# ── panel inference ──────────────────────────────────────────────────────────
+
+def _panel(series_by_pair: dict[str, list[float]]) -> pd.DataFrame:
+    """Stack equal-length series into the spread-panel shape, one row per pair-date."""
+    frames = []
+    for pair, values in series_by_pair.items():
+        dates = pd.bdate_range("2022-01-03", periods=len(values))
+        frames.append(pd.DataFrame({"pair_id": pair, "date": dates,
+                                    "greenium_bps": values}))
+    return pd.concat(frames, ignore_index=True)
+
+
+def test_driscoll_kraay_matches_newey_west_for_one_pair():
+    """With a single pair there is no cross-section, so the two must agree."""
+    x = list(ar1(600, mean=-3.0, rho=0.9))
+    assert G.driscoll_kraay_se(_panel({"a": x}), lags=20) == pytest.approx(
+        G.hac_standard_error(x, lags=20), rel=1e-9)
+
+
+def test_duplicated_pairs_add_no_information():
+    """
+    Two pairs that move identically are one pair's worth of evidence.
+
+    A HAC correction on the stacked series cannot see that — the duplicates sit
+    hundreds of rows apart — and shrinks the standard error as if the sample had
+    doubled. That is the failure the panel estimator exists to prevent.
+    """
+    x = list(ar1(600, mean=-3.0, rho=0.9))
+    one = G.driscoll_kraay_se(_panel({"a": x}), lags=20)
+    two = G.driscoll_kraay_se(_panel({"a": x, "b": x}), lags=20)
+    assert two == pytest.approx(one, rel=1e-9)
+    stacked = G.hac_standard_error(x + x, lags=20)
+    assert stacked < one
+
+
+def test_long_run_lags_cap_at_a_quarter_of_the_sample():
+    assert G.long_run_lags(100) == 25
+    assert G.long_run_lags(10_000) == G.LONG_RUN_LAGS
+
+
+def test_pooled_estimate_uses_the_panel_standard_error():
+    panel = _panel({"a": list(ar1(400, mean=-2.0, rho=0.8)),
+                    "b": list(ar1(400, mean=-1.0, rho=0.8, seed=11))})
+    est = G.estimate_pooled(panel)
+    assert est.hac_se_bps == pytest.approx(G.driscoll_kraay_se(panel), rel=1e-12)
+    assert est.n_obs == 800
+

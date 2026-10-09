@@ -5,7 +5,8 @@
 **▶ Live: [shangyuz-sustainable-finance.streamlit.app](https://shangyuz-sustainable-finance.streamlit.app)**
 
 A live Streamlit dashboard covering four sections useful on a sustainable
-finance desk — built entirely on freely licensed, open datasets.
+finance desk — built on Our World in Data's CC BY 4.0 datasets, plus a bundled
+EU carbon price series that is indicative only (see [DATA.md](../DATA.md)).
 
 ## Sections
 

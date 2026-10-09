@@ -4,6 +4,55 @@ All notable changes to this portfolio are documented here.
 
 ---
 
+## [v0.12.0] — 2026-10-09 — Corrections from an outside review
+
+An outside review of v0.11.1 found that several published claims went further
+than the work supports. Every point checked out; checking them found two more.
+Write-up in FINDINGS.md §8.
+
+### Greenium inference
+- **The published t-statistic was overstated.** v0.11 applied a 10-lag
+  Newey-West correction to nine pairs' daily histories stacked end to end
+  (t = −28.7). The spread is still 0.66 autocorrelated at 120 trading days, and
+  stacking treated same-date observations of different pairs as independent.
+  The pooled standard error is now Driscoll-Kraay with a 250-day bandwidth:
+  **−1.50bps, SE 0.330, t = −4.5**. The diagnostics publish t at 60/120/250 lags
+  (−8.2/−6.0/−4.5), a t-test across pair means (−5.7), equal-weight means per
+  pair (−1.29bps) and per date (−2.04bps), and the superseded figures.
+- Per-pair rows use a bandwidth of min(250, n/4). Yearly rows are now descriptive
+  only: within one year the dependence cannot be estimated reliably.
+- The maturity correlation (0.11) is no longer presented as showing a pure label
+  effect.
+- New unit tests: Driscoll-Kraay equals Newey-West for a single pair, and two
+  identical pairs carry no more information than one — which the stacked
+  estimator fails.
+
+### Claims
+- The 82% sovereign share is now stated as a property of the News Makers sample,
+  set against CBI's market-wide 11.6% (Q3 2024). The supply-forecasting
+  recommendation is removed.
+- The SLL break-even is presented as a hypothetical loan scenario, not as an
+  explanation of the SLB market's size.
+- "A fifth" corrected to under a third (31%); "nil before 2021" corrected to
+  acknowledge the flagged 2015 record; "freely licensed" removed from the root and
+  Project 3 READMEs.
+
+### References
+- Panizza et al.: title, authors, estimates (≈ −2bps advanced, ≈ −13bps emerging)
+  and method corrected. Banque de France WP1010: now Pietsch & Salakhova, correct
+  title, k-prototypes matching, ≈ −3.7bps. Caramichael & Rapp: global panel,
+  fixed-effects regression. Löffler et al.: primary and secondary markets,
+  propensity-score and coarsened exact matching. Added CBI (2024) and Driscoll &
+  Kraay (1998).
+
+### Fixes
+- `transforms.sovereign_only` crashed under pandas 2.x on missing ISO codes
+  (`~None`); the suite now passes on pandas 2.2.3 and 3.0.5.
+- The PDF renderer supports numbered lists and backslash escapes; the brief's
+  §3 list and 2024 footnote now render correctly.
+
+---
+
 ## [v0.11.1] — 2026-10-05 — Licensed data purged from git history
 
 v0.11.0 removed the records from the working tree. A final pre-publication check

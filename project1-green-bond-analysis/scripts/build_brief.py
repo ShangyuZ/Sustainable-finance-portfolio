@@ -11,8 +11,9 @@ Usage:
     python scripts/build_brief.py
 
 Requires ``reportlab`` (in requirements-dev.txt). Supports the Markdown subset
-the brief actually uses: ATX headings, paragraphs, ``-`` bullets, pipe tables,
-``---`` rules, and inline ``**bold**`` / ``*italic*`` / ``` `code` ```.
+the brief actually uses: ATX headings, paragraphs, ``-`` bullets, ``1.``
+numbered lists, pipe tables, ``---`` rules, inline ``**bold**`` / ``*italic*`` /
+``` `code` ```, and backslash escapes such as ``\\*``.
 """
 
 from __future__ import annotations
@@ -62,11 +63,17 @@ def styles() -> dict[str, ParagraphStyle]:
 
 def inline(text: str) -> str:
     """Convert inline Markdown to reportlab markup, escaping everything else."""
+    # Backslash escapes (``\*``) are literal characters, not emphasis markers.
+    # Park them in private-use code points so the emphasis rules cannot see them.
+    escaped = {"*": "\ue000", "_": "\ue001", "`": "\ue002", "\\": "\ue003"}
+    text = re.sub(r"\\([*_`\\])", lambda m: escaped[m.group(1)], text)
     out = html.escape(text, quote=False)
     out = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", out)
     out = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<i>\1</i>", out)
     out = re.sub(r"`(.+?)`", r'<font face="Courier">\1</font>', out)
     out = re.sub(r"\[(.+?)\]\((.+?)\)", r"\1", out)       # links: keep the label
+    for char, mark in escaped.items():
+        out = out.replace(mark, char)
     return out
 
 
@@ -109,6 +116,17 @@ def make_table(rows: list[list[str]], st: dict) -> Table:
             style.append(("BACKGROUND", (0, i), (-1, i), LIGHT))
     table.setStyle(TableStyle(style))
     return table
+
+
+LIST_MARKERS = {"bullet": r"^[-*] ", "numbered": r"^\d+\. "}
+
+
+def list_marker(line: str) -> str | None:
+    """``"bullet"`` or ``"numbered"`` if ``line`` opens a list item, else None."""
+    for kind, pattern in LIST_MARKERS.items():
+        if re.match(pattern, line.strip()):
+            return kind
+    return None
 
 
 def parse(md: str, st: dict) -> list:
@@ -165,22 +183,27 @@ def parse(md: str, st: dict) -> list:
                 flow.append(Spacer(1, 6))
             continue
 
-        if re.match(r"^[-*] ", line.strip()):             # bullet list
+        list_kind = list_marker(line)
+        if list_kind:                                     # bullet or numbered list
             items = []
-            while i < len(lines) and re.match(r"^[-*] ", lines[i].strip()):
-                text = re.sub(r"^[-*] ", "", lines[i].strip())
+            while i < len(lines) and list_marker(lines[i]) == list_kind:
+                text = re.sub(LIST_MARKERS[list_kind], "", lines[i].strip())
                 i += 1
-                # fold continuation lines into the same bullet
+                # fold continuation lines into the same item
                 while (i < len(lines) and lines[i].strip()
-                       and not re.match(r"^[-*] ", lines[i].strip())
+                       and not list_marker(lines[i])
                        and not lines[i].lstrip().startswith(("|", "#"))
                        and lines[i].startswith(("  ", "\t"))):
                     text += " " + lines[i].strip()
                     i += 1
                 items.append(ListItem(Paragraph(inline(text), st["bullet"]),
-                                      leftIndent=10))
-            flow.append(ListFlowable(items, bulletType="bullet", start="•",
-                                     leftIndent=12, bulletFontSize=7))
+                                      leftIndent=12))
+            if list_kind == "bullet":
+                flow.append(ListFlowable(items, bulletType="bullet", start="•",
+                                         leftIndent=12, bulletFontSize=7))
+            else:
+                flow.append(ListFlowable(items, bulletType="1", leftIndent=14,
+                                         bulletFontSize=8.9, bulletFormat="%s."))
             flow.append(Spacer(1, 5))
             continue
 
@@ -188,7 +211,8 @@ def parse(md: str, st: dict) -> list:
         para = [line]
         i += 1
         while (i < len(lines) and lines[i].strip()
-               and not lines[i].lstrip().startswith(("|", "#", "- ", "* "))
+               and not lines[i].lstrip().startswith(("|", "#"))
+               and not list_marker(lines[i])
                and not re.fullmatch(r"-{3,}", lines[i].strip())):
             para.append(lines[i].rstrip())
             i += 1

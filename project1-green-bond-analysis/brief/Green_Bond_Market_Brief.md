@@ -1,6 +1,6 @@
 # Green Bond Market Brief
 
-## What the labelled bond market actually is
+## What a sample of 732 labelled bonds shows — and what it cannot
 
 **ShangyuZ** · BSc Statistics, Economics & Finance, UCL · October 2026
 
@@ -10,17 +10,13 @@
 
 ## Summary view
 
-The labelled sustainable bond market is routinely presented as evidence that sustainable finance has reached scale. On the headline numbers it has: 732 transactions and $650bn of issuance, with deal count growing from 10 in 2018 to 238 in 2023.
+This is an exploratory analysis of a curated sample: the Climate Bonds Initiative News Makers extract, which tracks notable transactions rather than the whole market. It is useful for practising cleaning, aggregation and description on real issuance records. It is not a basis for statements about the size or make-up of the labelled-debt market, and the findings below are about the sample.
 
-Disaggregated, the picture is narrower and more policy-dependent than the headline suggests:
-
-- **82% of volume is sovereign.** Governments, not corporates, built this market. The private tail is $113.8bn across 284 deals.
-- **64% of volume is European.** Germany, France and the UK alone are 36.5%.
-- **The instrument with the strongest theoretical claim is the smallest.** Sustainability-linked bonds are 15% of deals but **3.4% of volume**, averaging $206m against green bonds' $1,077m.
-- **Average deal size has fallen 66%** since 2018, from $1,757m to $590m. The market is broadening — which is healthy — but broadening is not the private sector taking over.
-- **The pricing advantage is real but tiny, and shrinking.** Measuring Germany's green twin Bunds over 8,094 paired daily observations gives a greenium of **−1.50bps**, down from −4.71bps in 2021 to under 1bp today.
-
-**The investment implication:** labelled-debt supply is primarily a function of sovereign issuance programmes, not corporate ESG appetite. For anyone forecasting supply, the relevant calendar is the sovereign one.
+- **In this sample, 82% of volume is sovereign.** That is a property of how the sample was selected, not of the market. CBI's own market summary records $5.4tn of cumulative aligned sustainable debt to Q3 2024, of which $630.5bn — about 11.6% — is sovereign. Set side by side, this extract holds roughly 85% of the sovereign volume CBI records but only about 2% of everything else (§2).
+- **64% of sample volume is European.** Germany, France and the UK alone are 36.5%.
+- **Sustainability-linked bonds are 15% of the sample's deals but 3.4% of its volume**, averaging $206m against green bonds' $1,077m.
+- **Average deal size in the sample fell 66%** from 2018 to the partial year 2024, from $1,757m to $590m.
+- **Germany's green twin Bunds trade at a small, persistent greenium.** Over 8,094 paired daily observations the mean is **−1.50bps**, down from −4.71bps in 2021 to under 1bp in 2025. The sign is robust to every inference choice tested; the precision is modest (t = −4.5 once persistence and same-day co-movement are accounted for, §4).
 
 ---
 
@@ -54,7 +50,7 @@ Annual volume, with 2024 as a partial year in this extract:
 
 ---
 
-## 2. This is a sovereign market with a private tail
+## 2. The sample is mostly sovereign — the market is not
 
 | Sector | Deals | Volume ($bn) | % of volume | Avg deal ($m) |
 |---|---|---|---|---|
@@ -64,9 +60,11 @@ Annual volume, with 2024 as a partial year in this extract:
 | Industrials | 53 | 18.1 | 2.8% | 341 |
 | All others | 71 | 25.7 | 4.0% | 362 |
 
-Sovereign deals are **three times larger** on average than everything else ($1,197m vs $401m), so the sector's dominance of volume is a size effect as much as a frequency one.
+Within the sample, sovereign deals are **three times larger** on average than everything else ($1,197m vs $401m).
 
-Geographic concentration points the same way. Europe is 64.4% of volume across 293 deals; the top three countries are 36.5%:
+**Why this cannot be read as a market share.** CBI's *Sustainable Debt Market Summary Q3 2024* records $5.4tn of cumulative aligned green, social, sustainability and sustainability-linked debt, of which $630.5bn is sovereign — about 11.6%. The two sources are not directly interchangeable: coverage dates, alignment screens and instrument scope differ. But the order of magnitude is unambiguous. This extract holds $536.2bn of sovereign volume, roughly 85% of what CBI records, and $113.8bn of everything else, roughly 2% of CBI's ~$4.8tn. A newsflow series that picks up large sovereign deals and few of the rest will show a sovereign-dominated market whatever the market looks like.
+
+Geographic concentration in the sample follows from the same selection. Europe is 64.4% of sample volume across 293 deals; the top three countries are 36.5%:
 
 | Country | Deals | Volume ($bn) | % of volume |
 |---|---|---|---|
@@ -77,17 +75,15 @@ Geographic concentration points the same way. Europe is 64.4% of volume across 2
 | Chile | 36 | 37.6 | 5.8% |
 | China | 68 | 33.1 | 5.1% |
 
-Read together with the sector table, the market's growth story is substantially the story of European sovereign green issuance programmes — the green Bund, the OAT verte, the green gilt — plus a cluster of emerging-market sovereigns (Chile, Mexico, Indonesia, Hungary) that have used the format for budget funding.
-
-**That matters for supply forecasting.** Corporate ESG commitments are a weak predictor of labelled issuance; sovereign funding calendars are a strong one.
+What the sample does show well is the sovereign segment itself: European programmes — the green Bund, the OAT verte, the green gilt — and a cluster of emerging-market sovereigns (Chile, Mexico, Indonesia, Hungary) that have used the format for budget funding.
 
 ---
 
-## 3. The SLB puzzle: the best instrument is the smallest
+## 3. Sustainability-linked bonds in the sample
 
 Sustainability-linked bonds have the stronger theoretical claim. Green bonds restrict *use of proceeds*, which says nothing about whether the issuer's overall emissions fall and requires a ring-fenceable project. SLBs tie the coupon to an *outcome* — a measured KPI — so in principle they work for any issuer and reward actual performance.
 
-The market has not rewarded that logic with volume:
+In this sample they are small:
 
 | Theme | Deals | % of deals | Volume ($bn) | % of volume | Avg deal ($m) |
 |---|---|---|---|---|---|
@@ -96,15 +92,9 @@ The market has not rewarded that logic with volume:
 | SLB | 108 | 14.8% | 22.2 | **3.4%** | **206** |
 | Social | 25 | 3.4% | 27.6 | 4.2% | 1,105 |
 
-SLBs match sustainability bonds on deal count but carry a fifth of the volume. The average SLB is **five times smaller** than the average green bond. SLB share of annual volume reached 11.8% in 2024 — real growth from nil before 2021, but from a very low base and in the partial year.
+SLBs match sustainability bonds on deal count but carry under a third of their volume ($22.2bn against $72.5bn). The average SLB is **five times smaller** than the average green bond. SLB share of annual sample volume reached 11.8% in 2024, from almost nothing before 2021 — the only earlier record is a single 2015 deal that the Data Quality sheet flags as mislabelled — but from a very low base and in the partial year. Given the selection issue in §2, none of this says how large the SLB market is; CBI records $55.4bn of aligned SLB volume to Q3 2024.
 
-**Why I think the incentive is too weak to scale.** My companion analysis structures a sustainability-linked loan from first principles (same coupon-adjustment mechanism as an SLB). Three findings bear directly on this:
-
-1. **The adjustment is small.** A ±7.5bps margin ratchet — mid-range for market practice of 2.5–15bps — sits inside the ordinary spread volatility of a BBB– credit. It is unlikely to be the binding factor in anyone's cost of capital.
-2. **It scales with drawdown.** On a revolving facility the ratchet applies only to the drawn margin, so the benefit shrinks in direct proportion to how little is drawn.
-3. **It is gated by a fixed cost.** Third-party KPI verification does not get cheaper when the saving falls. On a £650m facility with ~£100k annual assurance cost, **break-even is 20.5% utilisation**: below that, the best possible sustainability outcome does not cover the cost of proving it.
-
-If the pricing incentive is close to immaterial, the rational reasons to issue performance-linked debt are signalling, investor access and internal accountability. Those are real, but they are weaker drivers of volume than funding need — which is exactly what the 3.4% volume share looks like.
+**A related exercise, not an explanation.** My companion project structures a hypothetical sustainability-linked *loan* — a £650m revolving facility with a ±7.5bps margin ratchet and ~£100k of annual KPI assurance. Because the ratchet applies only to the drawn margin while assurance is a fixed cost, the best-case outcome only covers its own verification above **20.5% utilisation**. That result is specific to an undrawn revolver. An SLB is fully funded at issue and adjusts its coupon by a different mechanism, so the loan scenario does not explain the size of the SLB market, and this brief does not use it to.
 
 ---
 
@@ -115,10 +105,10 @@ The academic literature consistently finds a small negative premium — green bo
 | Study | Market | Estimate (bps) | Method |
 |---|---|---|---|
 | Zerbib (2019) | Global, 110 bonds | −2 | Matched-pair + 2-step OLS |
-| Löffler et al. (2021) | Global primary | −15 to −20 | Coarsened exact matching |
-| Caramichael & Rapp (2022) | US corporates | −8 | Matching + event study |
-| Panizza et al. (2025) | Sovereign | −5 to −8 | Synthetic control |
-| Banque de France (2025) | Eurozone | −2 to −13 | Propensity-score matching |
+| Löffler et al. (2021) | Global, primary and secondary | −15 to −20 | Propensity-score and coarsened exact matching |
+| Caramichael & Rapp (2022) | Global corporates, at issuance | −8 | Fixed-effects panel regression |
+| Panizza et al. (2025) | Sovereign and sovereign-backed, secondary | ≈ −2 advanced, ≈ −13 emerging | 332 matched pairs |
+| Pietsch & Salakhova (2025) | Euro area, secondary | ≈ −3.7 average | k-prototypes matching |
 
 *Convention: (green yield − conventional yield); negative means a greenium exists.*
 
@@ -132,16 +122,27 @@ All nine green Federal securities outstanding were matched to their exact twins 
 
 | | |
 |---|---|
-| Pooled greenium | **−1.50bps** |
-| HAC standard error | 0.052 |
-| t-statistic | −28.7 |
+| Pooled greenium (each paired observation weighted equally) | **−1.50bps** |
+| Panel HAC standard error (Driscoll-Kraay, 250-day bandwidth) | 0.330 |
+| t-statistic | −4.5 |
 | Paired observations | 8,094 across 9 twin pairs |
 | Days with a negative spread | 99.8% |
 | Range of per-pair means | −0.65bps to −2.40bps |
 
-The greenium is small, highly persistent, and statistically unambiguous. It shows no maturity pattern (correlation between years-to-maturity and mean greenium: 0.11), so it is a label effect rather than a term-structure artefact.
+The greenium is small and persistent, and its sign is robust: all nine pairs have a negative mean, and the result holds under every inference choice tested. The *size* of the headline depends on weighting — −1.50bps per observation, −1.29bps with each pair weighted equally, −2.04bps with each date weighted equally (early dates have fewer pairs and the wide 2021 spreads) — so it is quoted with its weighting stated.
 
-**Inference matters here.** A daily yield spread is strongly autocorrelated. The ordinary standard error gives t = −94; the Newey-West HAC standard error is **3.3× larger** and gives t = −28.7. The conclusion survives either way, but an uncorrected standard error would have overstated the precision threefold — and on a shorter sample it could easily manufacture significance that was not there.
+**Inference: how the published precision was corrected.** The daily spread is strongly autocorrelated and stays so for months — 0.86 at 60 trading days and 0.66 at 120. An earlier version of this brief applied a Newey-West correction with the rule-of-thumb 10 lags to the nine pairs' histories stacked end to end, and reported t = −28.7. That understated the uncertainty twice over: 10 lags cut off most of the persistence, and stacking treated pairs quoted on the same date as independent evidence. Re-estimated with a panel HAC (Driscoll-Kraay) standard error, which sums residuals across pairs by date before applying the Newey-West weights:
+
+| Specification | t-statistic |
+|---|---|
+| Ordinary standard error (no correction) | −94.2 |
+| Stacked series, Newey-West, 10 lags (previously published) | −28.7 |
+| Driscoll-Kraay, 60 / 120 / 250 lags | −8.2 / −6.0 / −4.5 |
+| t-test across the nine pair means (8 df, no bandwidth needed) | −5.7 |
+
+The 250-day figure is the one quoted. The conclusion that a greenium exists survives every row; the precision of the earlier figure did not.
+
+**What the twin design does and does not identify.** Same issuer, coupon and maturity remove the matching problem, but not every difference: the green twin is smaller and less liquid, and the conventional twin can trade special in repo. The correlation between years-to-maturity and pair means is 0.11, but across nine pairs that only rules out a strong tenor pattern — it cannot establish that the spread is a pure label effect.
 
 **The more interesting result is the trend.** The greenium has compressed by roughly 80% from its 2021 peak:
 
@@ -155,9 +156,9 @@ The greenium is small, highly persistent, and statistically unambiguous. It show
 | 2025 | −0.76bps | 1,955 |
 | 2026 | −0.95bps | 1,683 |
 
-This is consistent with a maturing market: as green supply grew and the novelty premium faded, the pricing advantage eroded. It also sharpens the argument above. At −4.7bps there was at least a case that the label carried a funding benefit. At under 1bp, the benefit is inside the bid-offer spread on most days — too small to be a reason to issue, which is consistent with a market whose growth is driven by sovereign funding strategy rather than by price.
+The yearly means are descriptive; no per-year standard errors are reported, because within one year the dependence runs too long to estimate reliably. The pattern is consistent with a maturing market in which the novelty premium faded as green supply grew, though the number of pairs also rises from one to nine over the period, so composition contributes to the trend. At under 1bp, the pricing advantage on this curve is small relative to typical bid-offer spreads.
 
-My estimate sits close to Zerbib's −2bps and well below the primary-market studies' −15 to −20bps. That gap is expected rather than contradictory: those studies measure the concession at issuance, while this measures secondary-market trading in the most liquid sovereign curve in Europe, where any mispricing is arbitraged hardest.
+My estimate sits close to Zerbib's −2bps and to Panizza et al.'s ≈ −2bps for advanced-economy sovereigns, and well below Löffler et al.'s −15 to −20bps. That gap is plausible rather than contradictory: their matched universe spans corporate and lower-rated issuers, where comparability is hardest to achieve, while this measures exact twins on the most liquid sovereign curve in Europe, where any mispricing is arbitraged hardest.
 
 ---
 
@@ -165,25 +166,25 @@ My estimate sits close to Zerbib's −2bps and well below the primary-market stu
 
 The honest limitations of this analysis:
 
-- **The dataset is a curated newsflow extract**, not an exhaustive market census. The Climate Bonds Initiative News Makers series tracks notable transactions, and large sovereign deals are more likely to be *notable*. The 82% sovereign share may therefore overstate the true market share — this is the single largest threat to the conclusion, and it cannot be resolved from this dataset alone. Reconciling against a full issuance database is the first thing I would do next.
+- **The dataset is a curated newsflow extract**, not an exhaustive market census. The Climate Bonds Initiative News Makers series tracks notable transactions, and large sovereign deals are more likely to be *notable* — a selection effect large enough that the sample's 82% sovereign share sits beside about 11.6% in CBI's own market summary (§2). Every composition figure here is therefore a statement about the sample. Reconciling against a full issuance database is the first thing I would do next.
 - **2024 is partial**, so the recent trend and the 11.8% SLB share are provisional.
 - **Sector is undisclosed for 65 deals** ($23.8bn, 3.7% of volume), shown as Unclassified rather than dropped or allocated.
 - **Two source records are known to be wrong** and are flagged rather than silently corrected: one issuer is tagged to the wrong country, and one 2015 transaction is labelled SLB years before that market existed.
-- **The greenium estimate is German sovereign only.** It is the cleanest available estimate — the twin structure removes the matching problem rather than modelling around it — but it does not generalise to corporate issuers, to other sovereigns, or to primary-market pricing, where the published estimates are several times larger.
+- **The greenium estimate is German sovereign only.** The twin structure removes the matching problem rather than modelling around it, but it does not generalise to corporate issuers, to other sovereigns, or to primary-market pricing, where the published estimates are several times larger. Its precision depends on the bandwidth chosen (§4); its sign does not.
 
-Evidence that would change the conclusion: a full-market database showing corporate issuance materially larger than this extract implies; or SLB volume share continuing above ~10% through complete years, which would suggest the incentive problem matters less than I argue.
+What would change the greenium finding: a bandwidth or resampling scheme under which the sign stops being robust, or evidence that liquidity or repo effects account for the spread.
 
 ---
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and the aggregations are covered by 334 unit tests. Each figure quoted here is asserted against those tables in the test suite, so this document cannot drift from the data behind it.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and the aggregations are covered by the repository's test suite. Each figure quoted here is asserted against those tables in the test suite, so this document cannot drift from the data behind it.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
-The greenium estimate uses the Deutsche Finanzagentur's published daily price and yield series for each green Federal security and its conventional twin; the twin pairing is derived by matching coupon and maturity exactly, not asserted. `scripts/fetch_bund_yields.py` reproduces the download and `scripts/greenium.py` the estimate.
+The greenium estimate uses the Deutsche Finanzagentur's published daily price and yield series for each green Federal security and its conventional twin; the twin pairing is derived by matching coupon and maturity exactly, not asserted. Standard errors are Driscoll-Kraay with a 250-trading-day Bartlett bandwidth; the sensitivity table in §4 is regenerated with the estimate. `scripts/fetch_bund_yields.py` reproduces the download and `scripts/greenium.py` the estimate.
 
-Sources are public throughout: Climate Bonds Initiative for issuance, published academic papers for the comparative greenium evidence, and the Deutsche Finanzagentur for bond yields. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
+Sources are public throughout: Climate Bonds Initiative for issuance and for the market-wide comparison in §2, published academic papers for the comparative greenium evidence, and the Deutsche Finanzagentur for bond yields. No proprietary terminal data is used, and the repository's CI fails the build if a reference to one appears — including inside the Excel files.
 
 Public access is not the same as permission to republish, and two of these sources reserve their rights: CBI prohibits reproducing their content without written permission, and Finanzagentur marks its published data all rights reserved. Neither dataset is redistributed in the repository. What is published instead is this project's own derived output — the aggregate tables and the greenium estimator results — which is what every figure above is computed from and checked against. Both are regenerable from their publishers in one command by anyone with access. The repository's DATA.md records the terms and the trade-off.
 
@@ -199,8 +200,12 @@ Löffler, K.U., Petreski, A. & Stephan, A. (2021). *Drivers of green bond issuan
 
 Caramichael, J. & Rapp, A.C. (2022). *The Green Corporate Bond Issuance Premium.* Federal Reserve International Finance Discussion Paper 1346.
 
-Panizza, U. et al. (2025). *Sovereign Green Bonds.* CEPR Discussion Paper No. 20817.
+Climate Bonds Initiative (2024). *Sustainable Debt Market Summary Q3 2024.*
 
-Banque de France (2025). *The Green Bond Premium.* Working Paper No. 1010.
+Driscoll, J.C. & Kraay, A.C. (1998). *Consistent covariance matrix estimation with spatially dependent panel data.* Review of Economics and Statistics, 80(4), 549–560.
+
+Panizza, U., Shi, S., Weder di Mauro, B. & Gulati, M. (2025). *The Sovereign Greenium: Big Promise but Small Price Effect.* CEPR Discussion Paper No. 20817.
+
+Pietsch, A. & Salakhova, D. (2025). *Pricing of Green Bonds: Greenium Dynamics and the Role of Retail Investors.* Banque de France Working Paper No. 1010.
 
 LMA/APLMA/LSTA (2023). *Sustainability-Linked Loan Principles.*

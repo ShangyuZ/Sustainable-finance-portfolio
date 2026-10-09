@@ -3,36 +3,39 @@
 
 I'm building this portfolio to work with the actual instruments and data of
 sustainable finance — green bonds, sustainability-linked loans, climate datasets
-— rather than just reading about them. Everything uses open, freely licensed
-sources.
+— rather than just reading about them. Every source is publicly accessible without
+a paid subscription; their terms of use differ, and [DATA.md](./DATA.md) records
+each one.
 
-## The argument
+## What the work shows
 
 Labelled debt splits into two families. **Use-of-proceeds** instruments (green
 bonds) promise what the money is spent on. **Performance-linked** instruments
 (SLBs, SLLs) promise an *outcome*, and the borrower's cost of capital moves with
-whether they hit it. The second family is the more intellectually satisfying one,
-which is why it gets the attention.
+whether they hit it. I looked at one concrete pricing question in each:
 
-Working through both, I think the performance-linked family has a pricing
-problem:
+- **Green bonds (Project 1).** On Germany's green twin Bunds — same issuer, coupon
+  and maturity as their conventional twins — the greenium is **−1.50bps** over
+  8,094 paired daily observations, negative for all nine pairs, and down from
+  −4.71bps in 2021 to −0.76bps in 2025. The sign is robust to every inference
+  choice I tested; the precision is modest (t = −4.5 with a panel HAC standard
+  error). German sovereign only.
+- **Sustainability-linked loans (Project 2).** In a hypothetical £650m revolving
+  facility with a ±7.5bps ratchet, the discount applies only to the drawn margin
+  while ~£100k of annual verification is fixed, so the best-case outcome only
+  pays for its own assurance above **20.5% utilisation**. That result is specific
+  to an undrawn revolver; it says nothing about bonds.
 
-- The incentive is small — a ±7.5bps ratchet sits inside the ordinary spread
-  volatility of a BBB– borrower.
-- It scales with drawdown, so it is weakest exactly where revolving facilities
-  actually sit: undrawn, as liquidity backstops.
-- It is gated by a fixed cost. Below **20.5% utilisation**, the best possible ESG
-  outcome does not pay for the verification needed to prove it.
+In both cases the direct pricing incentive I could measure or model is small.
+That is consistent with the view that the case for labelled structures rests
+largely on signalling, investor access and internal accountability — but these
+are two specific cases, not a test of the market as a whole.
 
-Meanwhile the use-of-proceeds market did scale — $650bn across 732 deals — but
-**82% of that volume is sovereign**. It scaled because governments issued, not
-because the private incentive worked.
-
-So neither family looks primarily priced into existence. The case for
-sustainability-linked structures is signalling, governance and internal
-accountability — a real case, but not the cost-of-capital case the marketing
-makes. Project 2 is the evidence for the first half, Project 1 for the second,
-and Project 3 is the underlying climate data.
+Project 1 also analyses a curated sample of 732 labelled bonds. It is useful for
+data cleaning and description, not for statements about the market's make-up: its
+82% sovereign share sits beside about 11.6% in the Climate Bonds Initiative's own
+market-wide summary, because a newsflow extract picks up large sovereign deals far
+more often than anything else.
 
 ## What I got wrong
 
@@ -40,6 +43,8 @@ In October 2026 I audited this portfolio instead of adding to it, and found five
 things wrong — two of which meant dashboard sections that had never worked, and
 one of which meant this README's own headline claim was false (four Bloomberg
 references were sitting inside an `.xlsx`, where no text search could find them).
+An outside review a week later found more, including in the audit's own headline
+statistic and in claims this README used to make about the market.
 
 **→ [FINDINGS.md](./FINDINGS.md)** documents all of them, with mechanisms and
 quantified consequences. It is probably the most useful thing in this repository.
@@ -83,13 +88,14 @@ them.
 ## Projects
 
 ### 01 · Green Bond Market Analysis
-`Python` `pandas` `openpyxl` `Climate Bonds Initiative` · **Status: Complete** *(brief outstanding)*
+`Python` `pandas` `openpyxl` `Climate Bonds Initiative` · **Status: Complete**
 
-Analysis of 732 labelled sustainable bond issuances (2015–2024, $650bn) using
-public Climate Bonds Initiative data. Covers market growth measured in both deals
-and dollars, geographic and sector breakdown, the rise of sustainability-linked
-bonds, and a **measured greenium of −1.50bps** from Germany's green "twin" Bunds
-across 8,094 paired daily observations.
+Exploratory analysis of a curated sample of 732 labelled sustainable bond
+issuances (2015–2024, $650bn) from the Climate Bonds Initiative's News Makers
+extract. Covers growth measured in both deals and dollars, geographic and sector
+breakdown within the sample, sustainability-linked bonds, and a **measured
+greenium of −1.50bps** from Germany's green "twin" Bunds across 8,094 paired daily
+observations, with panel-robust inference.
 
 Rebuilds end to end with one command from the committed aggregates. The
 underlying records are not redistributable, so what ships is the derived
@@ -135,7 +141,7 @@ price history from a bundled series that is indicative rather than a reference
 
 ```bash
 pip install -r requirements.txt
-pytest tests/                                            # 334 tests
+pytest tests/                                            # 341 tests
 
 python project1-green-bond-analysis/scripts/process_data.py    # rebuild model 1
 python project2-sll-structuring/scripts/build_model.py         # rebuild model 2
@@ -161,7 +167,7 @@ project2-sll-structuring/
 project3-climate-dashboard/
   app.py                       Streamlit UI and data loading
   transforms.py                pure calculations — no Streamlit, unit-tested
-tests/                         334 tests across all three projects
+tests/                         341 tests across all three projects
 FINDINGS.md                    what the audit found, and what I changed
 DATA.md                        per-source provenance, terms, and what was removed
 LICENSE                        MIT, covering the code, analysis and derived stats
@@ -221,4 +227,4 @@ the analysis.
 
 ---
 
-*Last updated: 2026-10-02*
+*Last updated: 2026-10-09*

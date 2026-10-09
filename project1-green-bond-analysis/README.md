@@ -2,8 +2,9 @@
 
 ## Overview
 
-This project analyses the global labelled sustainable bond market using publicly
-available issuance data from the Climate Bonds Initiative. I built it to understand
+This project is an exploratory analysis of a curated sample of labelled
+sustainable bonds — the Climate Bonds Initiative's News Makers extract, which
+tracks notable transactions rather than the whole market. I built it to understand
 how sustainable debt markets have evolved — and specifically to examine how quickly
 sustainability-linked bonds are emerging as a structurally different instrument
 relative to traditional green bonds.
@@ -11,9 +12,10 @@ relative to traditional green bonds.
 Two things surprised me. The first was how much the answer depends on whether you
 measure in deal count or in dollars: SLBs are about 15% of transactions but only
 3% of volume, so the "SLB boom" is many small deals rather than a shift in where
-the money goes. The second was how much of this market is simply governments —
-sovereign issuers are 82% of volume. The private-sector green bond market is far
-smaller than the headline numbers suggest.
+the money goes. The second was how much the sample's selection shapes its
+composition: sovereign issuers are 82% of its volume, against about 11.6% in CBI's
+own market-wide summary. A newsflow extract is a good place to practise cleaning
+and description, and a poor basis for statements about the market's make-up.
 
 ## Key Questions
 
@@ -63,20 +65,24 @@ Two caveats matter for reading any figure below:
   market broadened. The +2,280% figure is a count, not a volume.
 - **Green bonds are 67% of deals but 81% of volume** — the average green deal is
   materially larger than the average labelled bond.
-- **SLBs are the fastest-growing theme but remain small in dollars**: ~15% of
-  deals, ~3% of volume, reaching 11.8% of annual volume in 2024 from nil before
-  2021.
-- **Sovereign issuers are 82% of volume** across 448 deals. Government
-  programmes, not corporate issuance, are what scaled this market.
+- **SLBs are the fastest-growing theme in the sample but small in dollars**: ~15%
+  of deals, ~3% of volume, reaching 11.8% of annual volume in 2024 from almost
+  nothing before 2021 (one 2015 record, flagged as mislabelled, aside).
+- **Sovereign issuers are 82% of the sample's volume** across 448 deals. That is
+  a selection effect, not a market share: CBI's *Sustainable Debt Market Summary
+  Q3 2024* puts sovereigns at $630.5bn of $5.4tn cumulative aligned volume, about
+  11.6%. This extract holds roughly 85% of that sovereign volume but about 2% of
+  everything else.
 - **Deal count and volume rank countries differently.** China leads on deal count
   (68) but is sixth by volume, because Chinese issuance here is many small bank
   deals while European volume sits in large sovereign programmes. Germany,
   France and the UK are the top three by volume (36% combined).
 - **Greenium: −1.50bps**, measured on Germany's green twin Bunds across 8,094
-  paired daily observations (HAC SE 0.052, t = −28.7), and **compressed ~80% since
-  2021**. That sits close to Zerbib's −2bps and well below the primary-market
-  studies' −20bps, which is expected: those measure the issuance concession, this
-  measures secondary trading. German sovereign only — see the limitations below.
+  paired daily observations (panel HAC SE 0.330, t = −4.5), down from −4.71bps in
+  2021 to −0.76bps in 2025. The sign is robust to every inference choice tested;
+  the precision is modest. It sits close to Zerbib's −2bps and Panizza et al.'s
+  ≈ −2bps for advanced-economy sovereigns. German sovereign only — see the
+  limitations below.
 
 ## Methodology
 
@@ -132,7 +138,7 @@ same workbook. Other options: `--output`, `--aggregates`, `--min-year`.
 python scripts/export_aggregates.py --input <your copy of the extract>
                                 # regenerate the aggregate tables from records
 python scripts/build_brief.py   # regenerate the investment brief PDF
-pytest ../tests/                # 334 tests: cleaning, aggregation, model, brief, greenium
+pytest ../tests/                # tests: cleaning, aggregation, model, brief, greenium
 ```
 
 ### The investment brief
@@ -225,11 +231,13 @@ python scripts/greenium.py --pairs data/green_twin_pairs.csv \
   non-twin pairs are usable but flagged, and the output reports each pair's
   `maturity_gap_days` so a mismatched comparison can't be mistaken for a clean one.
 
-Inference is **Newey-West HAC corrected**. A daily yield spread is strongly
-autocorrelated, so the ordinary standard error of its mean is badly understated
-and an uncorrected t-test will find significance that is not there. The estimator
-reports the HAC standard error, the resulting t-statistic, the full distribution
-across pairs, and the share of days on which the spread was actually negative —
+Inference uses a **panel HAC (Driscoll-Kraay) standard error with a 250-day
+Bartlett bandwidth**. A daily yield spread stays autocorrelated for months (0.66 at
+120 trading days on this data), and the pooled sample stacks nine pairs quoted on
+the same dates, so both the persistence and the same-day co-movement have to be
+accounted for. The estimator reports that standard error, the resulting
+t-statistic, a bandwidth sensitivity table, the full distribution across pairs, and
+the share of days on which the spread was actually negative —
 because the published range (−2 to −20bps) is mostly heterogeneity across issuers
 and periods rather than disagreement about method.
 
@@ -240,19 +248,27 @@ exact twins — **8,094 paired daily observations, September 2020 to October 202
 
 | | |
 |---|---|
-| Pooled greenium | **−1.50bps** (HAC SE 0.052, t = −28.7) |
+| Pooled greenium (per observation) | **−1.50bps** (panel HAC SE 0.330, t = −4.5) |
+| Equal weight per pair / per date | −1.29bps / −2.04bps |
+| t across bandwidths 60 / 120 / 250 days | −8.2 / −6.0 / −4.5 |
+| t across the nine pair means (8 df) | −5.7 |
 | Days with a negative spread | 99.8% |
 | Per-pair means | −0.65bps to −2.40bps, all negative |
-| 2021 → 2025 | −4.71bps → −0.76bps (~80% compression) |
+| 2021 → 2025 (descriptive) | −4.71bps → −0.76bps |
 
-The HAC correction is not cosmetic: on this data it triples the standard error,
-taking the t-statistic from −94 to −28.7. There is no maturity pattern
-(correlation 0.11), so this is a label effect, not a term-structure artefact.
+**A correction to the first version.** It applied a 10-lag Newey-West correction
+to the nine pairs' histories stacked end to end and reported t = −28.7. Ten lags
+cut off most of the persistence, and stacking treated pairs quoted on the same
+date as independent evidence. The sign survives every specification above; the
+precision of that figure did not. The maturity correlation of 0.11 across nine
+pairs rules out a strong tenor pattern but cannot establish a pure label effect —
+liquidity and repo differences between the twins remain possible contributors.
 
 The estimator's output *is* committed, even though its input is not:
 `data/greenium_summary.csv` (per-pair and pooled), `data/greenium_by_year.csv`
-(the compression series) and `data/greenium_diagnostics.json` (the HAC correction,
-the maturity correlation, the sample bounds). Every figure in the table above is
+(the yearly means, descriptive only) and `data/greenium_diagnostics.json` (the
+inference sensitivity table, alternative weightings, autocorrelation, the maturity
+correlation, the sample bounds). Every figure in the table above is
 checked against those files by `tests/test_greenium_result.py`, so the write-ups
 cannot drift from the result.
 
@@ -293,7 +309,7 @@ are verifiable from source, not just internally consistent.
 - [x] Greenium empirical estimate — −1.50bps across 8,094 paired observations
 - [x] Reproducible build from committed source data
 - [x] Unit tests and CI
-- [x] Investment brief — market structure, the SLB puzzle, and the measured greenium
+- [x] Investment brief — sample composition, SLBs in the sample, and the measured greenium
 
 ## Data Sources
 
@@ -325,11 +341,18 @@ and new evidence on the "greenium".* Eurasian Economic Review, 11, 1–24.
 Caramichael, J. & Rapp, A.C. (2022). *The Green Corporate Bond Issuance Premium.*
 Federal Reserve International Finance Discussion Paper 1346.
 
-Panizza, U. et al. (2025). *Sovereign Green Bonds.* CEPR Discussion Paper No. 20817.
+Climate Bonds Initiative (2024). *Sustainable Debt Market Summary Q3 2024.*
 
-Banque de France (2025). *The Green Bond Premium.* Working Paper No. 1010.
+Driscoll, J.C. & Kraay, A.C. (1998). *Consistent covariance matrix estimation with
+spatially dependent panel data.* Review of Economics and Statistics, 80(4), 549–560.
+
+Panizza, U., Shi, S., Weder di Mauro, B. & Gulati, M. (2025). *The Sovereign
+Greenium: Big Promise but Small Price Effect.* CEPR Discussion Paper No. 20817.
+
+Pietsch, A. & Salakhova, D. (2025). *Pricing of Green Bonds: Greenium Dynamics and
+the Role of Retail Investors.* Banque de France Working Paper No. 1010.
 
 ---
-*Last updated: 2026-10-02*
+*Last updated: 2026-10-09*
 
 *Part of the [Sustainable Finance Portfolio](../README.md)*
