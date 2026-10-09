@@ -12,7 +12,7 @@
 
 This is an exploratory analysis of a curated sample: the Climate Bonds Initiative News Makers extract, which tracks notable transactions rather than the whole market. It is useful for practising cleaning, aggregation and description on real issuance records. It is not a basis for statements about the size or make-up of the labelled-debt market, and the findings below are about the sample.
 
-- **In this sample, 82% of volume is sovereign.** That is a property of how the sample was selected, not of the market. CBI's own market summary records $5.4tn of cumulative aligned sustainable debt to Q3 2024, of which $630.5bn — about 11.6% — is sovereign. Set side by side, this extract holds roughly 85% of the sovereign volume CBI records but only about 2% of everything else (§2).
+- **In this sample, 82% of volume is sovereign.** That is a property of how the sample was selected, not of the market. CBI's own market summary records $5.4tn of cumulative aligned sustainable debt to Q3 2024, of which $630.5bn — about 11.6% — is sovereign. The two sources have different coverage, so the comparison shows that the sample is not representative, not by how much (§2).
 - **64% of sample volume is European.** Germany, France and the UK alone are 36.5%.
 - **Sustainability-linked bonds are 15% of the sample's deals but 3.4% of its volume**, averaging $206m against green bonds' $1,077m.
 - **Average deal size in the sample fell 66%** from 2018 to the partial year 2024, from $1,757m to $590m.
@@ -62,7 +62,7 @@ Annual volume, with 2024 as a partial year in this extract:
 
 Within the sample, sovereign deals are **three times larger** on average than everything else ($1,197m vs $401m).
 
-**Why this cannot be read as a market share.** CBI's *Sustainable Debt Market Summary Q3 2024* records $5.4tn of cumulative aligned green, social, sustainability and sustainability-linked debt, of which $630.5bn is sovereign — about 11.6%. The two sources are not directly interchangeable: coverage dates, alignment screens and instrument scope differ. But the order of magnitude is unambiguous. This extract holds $536.2bn of sovereign volume, roughly 85% of what CBI records, and $113.8bn of everything else, roughly 2% of CBI's ~$4.8tn. A newsflow series that picks up large sovereign deals and few of the rest will show a sovereign-dominated market whatever the market looks like.
+**Why this cannot be read as a market share.** CBI's *Sustainable Debt Market Summary Q3 2024* records $5.4tn of cumulative aligned green, social, sustainability and sustainability-linked debt, of which $630.5bn is sovereign — about 11.6%. The two sources have different coverage — dates, alignment screens and instrument scope all differ — so the figures cannot be divided into each other to say how much of the market this extract captures. What the gap between 82.5% and about 11.6% does show is that the sample's composition cannot stand in for the market's. A newsflow series that tracks notable transactions is likely to over-represent large sovereign deals.
 
 Geographic concentration in the sample follows from the same selection. Europe is 64.4% of sample volume across 293 deals; the top three countries are 36.5%:
 
@@ -156,7 +156,7 @@ The 250-day figure is the one quoted. The conclusion that a greenium exists surv
 | 2025 | −0.76bps | 1,955 |
 | 2026 | −0.95bps | 1,683 |
 
-The yearly means are descriptive; no per-year standard errors are reported, because within one year the dependence runs too long to estimate reliably. The pattern is consistent with a maturing market in which the novelty premium faded as green supply grew, though the number of pairs also rises from one to nine over the period, so composition contributes to the trend. At under 1bp, the pricing advantage on this curve is small relative to typical bid-offer spreads.
+The yearly means are descriptive; no per-year standard errors are reported, because within one year the dependence runs too long to estimate reliably. The pattern is consistent with a maturing market in which the novelty premium faded as green supply grew, though the number of pairs also rises from one to nine over the period, so composition contributes to the trend. The average yield difference is below 1bp in 2025.
 
 My estimate sits close to Zerbib's −2bps and to Panizza et al.'s ≈ −2bps for advanced-economy sovereigns, and well below Löffler et al.'s −15 to −20bps. That gap is plausible rather than contradictory: their matched universe spans corporate and lower-rated issuers, where comparability is hardest to achieve, while this measures exact twins on the most liquid sovereign curve in Europe, where any mispricing is arbitraged hardest.
 
@@ -178,7 +178,7 @@ What would change the greenium finding: a bandwidth or resampling scheme under w
 
 ## Methodology
 
-Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and the aggregations are covered by the repository's test suite. Each figure quoted here is asserted against those tables in the test suite, so this document cannot drift from the data behind it.
+Data was cleaned and aggregated in Python (pandas) and the model built with openpyxl; every figure in this brief regenerates from the published aggregate tables with one command, and tests check key calculations and the consistency of the quoted figures with those tables. They do not validate every interpretation or citation.
 
 The source extract required substantive normalisation before it could be aggregated, all documented on the model's Data Quality sheet: sector "not disclosed" was encoded as the string `"0"` (64 records); 34 sector labels denoted 11 real groups (seven spellings of the financial sector each ranked separately); and four country labels were duplicated — `USA`/`United States`, `UK`/`United Kingdom`, `China_HK`, and a misspelt `Supranational`, plus one trailing-space variant of `Netherlands`. Left uncorrected these understated the UK by $0.45bn and inflated the country count from 64 to an apparent 69.
 
